@@ -12,15 +12,9 @@ tools to manage programs, assignments, and learner activities through a simple a
 - Create a mobile app that helps learners and administrators.
 
 ## Navigation Flow
-Login
-   ↓
-Home Dashboard
-   ↓
-Browse Programs
-   ↓
-Program Details
+Login → Home Dashboard → Browse Programs → Program Details
 
-##Technologies Used
+## Technologies Used
 - Flutter
 - Figma
 - Git
