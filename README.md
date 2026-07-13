@@ -1,9 +1,11 @@
 # Nextern
 
-# Project Vision
+## Project Vision
 Nextern is a mobile application designed to provide learners with easy access to learning programs while giving administrators tools to manage programs, assignments, and learner activities through a simple and user-friendly interface.
 
 📄 For full project details, see our [App Proposal Document](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20App%20Proposal.pdf).
+
+🎨 View our [Figma Wireframe](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=0-1&p=f&t=6eFbiWd7greXp48c-0).
 
 ## Objectives
 
