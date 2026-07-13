@@ -36,3 +36,4 @@ Bottom navigation bar (Dashboard, Users, Updates, Settings) mirrors the learner 
 - Figma
 - Git
 - GitHub
+- Dart
