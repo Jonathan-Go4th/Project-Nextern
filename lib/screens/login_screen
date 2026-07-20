@@ -17,9 +17,9 @@ class LoginScreen extends StatelessWidget {
 Center(
   child: Column(
     children: [
-      const Text(
-  'NEXTERN',
-  style: TextStyle(
+      Text(
+        'NEXTERN',
+        style: TextStyle(
           fontSize: 34,
           fontWeight: FontWeight.bold,
           color: Color(0xFF1E5BFF),
@@ -110,34 +110,31 @@ Align(
   ),
 ),
 
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E5EFF),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+const SizedBox(height: 20),
+SizedBox(
+  width: double.infinity,
+  height: 52,
+  child: ElevatedButton(
+    onPressed: () {},
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF1E5EFF),
+      foregroundColor: Colors.white,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-    );
+    ),
+    child: const Text(
+      'Login',
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
+          ),
+  ),
+  ),
+            
+            ],
+    )
   }
 }
