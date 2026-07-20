@@ -5,6 +5,9 @@ import 'screens/admin_login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
+import 'screens/browse_programs_screen.dart';
+import 'screens/tasks_screen.dart';
+import 'screens/admin_monitoring_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,6 +39,9 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),
         '/admin-home': (context) => const AdminHomeScreen(),
+        '/browse': (context) => const BrowseProgramsScreen(),
+        '/tasks': (context) => const TasksScreen(),
+        '/admin-monitoring': (context) => const AdminMonitoringScreen(),
       },
     );
   }

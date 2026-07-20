@@ -130,10 +130,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         return;
       }
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const AdminHomeScreen(),
-        ),
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/admin-home',
         (Route<dynamic> route) => false,
       );
     } catch (_) {

@@ -64,11 +64,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   void _handleNavigation(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index != 0) {
+    if (index == _selectedIndex) return;
+    
+    if (index == 1) {
+      Navigator.of(context).pushReplacementNamed('/admin-monitoring');
+    } else if (index != 0) {
+      setState(() {
+        _selectedIndex = index;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('This admin section will be implemented next.'),

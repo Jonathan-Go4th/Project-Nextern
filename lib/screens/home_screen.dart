@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'app_session.dart';
+import 'browse_programs_screen.dart';
+import 'program_details_screen.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -115,11 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openProgramDetails() async {
-    await _pushFirstRegisteredRoute(
-      _programDetailsRoutes,
-      screenLabel: 'Program Details',
+  Future<void> _openProgramDetails(ProgramData program) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProgramDetailsScreen(program: program),
+      ),
     );
+    if (mounted) setState(() {});
   }
 
   Future<void> _selectNavigationItem(int index) async {
@@ -141,11 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         return;
       case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tasks are handled by the Tasks screen owner.'),
-          ),
-        );
+        setState(() {
+          _selectedIndex = 2;
+        });
+        await Navigator.of(context).pushNamed('/tasks');
+        if (mounted) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        }
         return;
       case 3:
         await _openLearnerProfile();
@@ -527,7 +535,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextButton(
-                onPressed: _openProgramListing,
+                onPressed: () async {
+                  await _openProgramListing();
+                  if (mounted) setState(() {});
+                },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
@@ -547,27 +558,45 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          ...(() {
+            final savedPrograms = ProgramData.samplePrograms
+                .where((program) => program.isSaved)
+                .toList();
 
-          _ProgramCard(
-            category: 'DESIGN',
-            arrangement: 'REMOTE',
-            title: 'Product Design Internship',
-            description:
-                'Join our core design team to build scalable enterprise solutions.',
-            icon: Icons.design_services_outlined,
-            onTap: _openProgramDetails,
-          ),
-          const SizedBox(height: 14),
-          _ProgramCard(
-            category: 'ENGINEERING',
-            arrangement: 'HYBRID',
-            title: 'Frontend React Developer',
-            description:
-                'Help build the next generation of our web platform.',
-            icon: Icons.code_rounded,
-            onTap: _openProgramDetails,
-          ),
+            if (savedPrograms.isEmpty) {
+              return [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                    child: Text(
+                      'No saved programs yet.\nBrowse and save programs to see them here!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ];
+            }
+
+            return savedPrograms.map((program) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _ProgramCard(
+                  category: program.category,
+                  arrangement: program.arrangement,
+                  title: program.title,
+                  description: program.description,
+                  icon: program.icon,
+                  isSaved: program.isSaved,
+                  onTap: () => _openProgramDetails(program),
+                ),
+              );
+            }).toList();
+          })(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -697,6 +726,7 @@ class _ProgramCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.icon,
+    required this.isSaved,
     required this.onTap,
   });
 
@@ -705,6 +735,7 @@ class _ProgramCard extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
+  final bool isSaved;
   final VoidCallback onTap;
 
   @override
@@ -748,15 +779,15 @@ class _ProgramCard extends StatelessWidget {
                     color: _primaryBlue,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   right: 12,
                   top: 12,
                   child: CircleAvatar(
                     radius: 17,
                     backgroundColor: Colors.white,
                     child: Icon(
-                      Icons.bookmark,
-                      color: _primaryBlue,
+                      isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      color: isSaved ? _primaryBlue : const Color(0xFF7C8798),
                       size: 18,
                     ),
                   ),

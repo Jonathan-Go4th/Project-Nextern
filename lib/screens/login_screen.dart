@@ -157,10 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const HomeScreen(),
-        ),
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
         (Route<dynamic> route) => false,
       );
     } catch (_) {
