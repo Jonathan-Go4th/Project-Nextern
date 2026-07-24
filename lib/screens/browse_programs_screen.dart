@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'program_details_screen.dart';
 import 'app_session.dart';
+import '../widgets/notification_badge.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -47,6 +48,7 @@ class ProgramData {
       icon: Icons.school,
       company: 'Nextern Academy',
       tags: ['Figma', 'Research', '8 Weeks'],
+      isSaved: true,
     ),
     ProgramData(
       category: 'INTERNSHIP',
@@ -56,6 +58,25 @@ class ProgramData {
       icon: Icons.corporate_fare,
       company: 'CloudScale Inc.',
       tags: ['AWS', 'DevOps', 'Hybrid'],
+    ),
+    ProgramData(
+      category: 'PROGRAM',
+      arrangement: 'ONLINE',
+      title: 'Full Stack Web Development',
+      description: 'Learn to build complete web applications from scratch using Node.js, Express, and React.',
+      icon: Icons.computer,
+      company: 'CodeCraft Academy',
+      tags: ['Node.js', 'React', 'Online'],
+    ),
+    ProgramData(
+      category: 'INTERNSHIP',
+      arrangement: 'REMOTE',
+      title: 'Data Science Intern',
+      description: 'Join our AI team to build predictive models and analyze large datasets using Python and TensorFlow.',
+      icon: Icons.analytics,
+      company: 'DataMinds',
+      tags: ['Python', 'TensorFlow', 'Remote'],
+      isSaved: true,
     ),
   ];
 }
@@ -70,6 +91,42 @@ class BrowseProgramsScreen extends StatefulWidget {
 class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
   int _selectedIndex = 1;
   String _displayName = 'Alex';
+
+  String _searchQuery = '';
+  String _activeFilter = 'All Categories';
+  bool _showSavedOnly = false;
+  int _visibleCount = 3;
+
+  List<ProgramData> get _filteredPrograms {
+    return ProgramData.samplePrograms.where((program) {
+      if (_showSavedOnly && !program.isSaved) return false;
+      if (_activeFilter != 'All Categories') {
+        bool tagMatch = program.tags.any((tag) => tag.toLowerCase() == _activeFilter.toLowerCase());
+        if (!tagMatch) return false;
+      }
+      
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final matchesTitle = program.title.toLowerCase().contains(query);
+        final matchesDesc = program.description.toLowerCase().contains(query);
+        final matchesCompany = program.company.toLowerCase().contains(query);
+        final matchesCategory = program.category.toLowerCase().contains(query);
+        
+        if (!matchesTitle && !matchesDesc && !matchesCompany && !matchesCategory) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  List<String> get _uniqueTags {
+    final Set<String> tags = {};
+    for (var program in ProgramData.samplePrograms) {
+      tags.addAll(program.tags);
+    }
+    return tags.toList()..sort();
+  }
 
   @override
   void initState() {
@@ -100,6 +157,113 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
     return '${words.first.substring(0, 1)}${words.last.substring(0, 1)}'.toUpperCase();
   }
 
+  Future<void> _openFilterModal() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD9DEE8),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'All Filters',
+                        style: TextStyle(
+                          color: _textPrimary,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _activeFilter = 'All Categories';
+                          });
+                          setState(() {
+                            _activeFilter = 'All Categories';
+                            _visibleCount = 3;
+                          });
+                        },
+                        child: const Text('Clear', style: TextStyle(color: _primaryBlue)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Categories & Tags',
+                    style: TextStyle(
+                      color: _textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _FilterChip(
+                        label: 'All Categories',
+                        isSelected: _activeFilter == 'All Categories',
+                        onTap: () {
+                          setModalState(() => _activeFilter = 'All Categories');
+                          setState(() {
+                            _activeFilter = 'All Categories';
+                            _visibleCount = 3;
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                      ..._uniqueTags.map((tag) => _FilterChip(
+                            label: tag,
+                            isSelected: _activeFilter == tag,
+                            onTap: () {
+                              setModalState(() => _activeFilter = tag);
+                              setState(() {
+                                _activeFilter = tag;
+                                _visibleCount = 3;
+                              });
+                              Navigator.pop(context);
+                            },
+                          )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _selectNavigationItem(int index) async {
     if (index == _selectedIndex) return;
 
@@ -108,9 +272,7 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
     } else if (index == 2) {
       Navigator.of(context).pushReplacementNamed('/tasks');
     } else if (index == 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile handled by Home screen.')),
-      );
+      Navigator.of(context).pushReplacementNamed('/profile');
     }
   }
 
@@ -160,13 +322,7 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF3C4554),
-            ),
-          ),
+          const NotificationBadge(iconColor: Color(0xFF3C4554)),
           const SizedBox(width: 8),
         ],
       ),
@@ -194,6 +350,12 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
           
           // Search Bar
           TextField(
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+                _visibleCount = 3;
+              });
+            },
             decoration: InputDecoration(
               hintText: 'Search for programs, skills, or companies...',
               hintStyle: const TextStyle(color: _textSecondary),
@@ -222,42 +384,109 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _FilterChip(label: 'All Categories', isSelected: false, hasDropdown: true),
+                InkWell(
+                  onTap: _openFilterModal,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE5E9F0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.tune_rounded, size: 16, color: _textPrimary),
+                        const SizedBox(width: 6),
+                        Text(
+                          _activeFilter == 'All Categories' ? 'Filters' : _activeFilter,
+                          style: const TextStyle(
+                            color: _textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                _FilterChip(label: 'Remote', isSelected: false),
+                _FilterChip(
+                  label: 'Saved Programs',
+                  isSelected: _showSavedOnly,
+                  onTap: () {
+                    setState(() {
+                      _showSavedOnly = !_showSavedOnly; // Toggle saved independent of other filters
+                      _visibleCount = 3;
+                    });
+                  },
+                ),
                 const SizedBox(width: 8),
-                _FilterChip(label: 'Paid', isSelected: false),
-                const SizedBox(width: 8),
-                _FilterChip(label: 'Tech & IT', isSelected: true),
+                _FilterChip(
+                  label: 'Remote',
+                  isSelected: _activeFilter == 'Remote',
+                  onTap: () {
+                    setState(() {
+                      _activeFilter = _activeFilter == 'Remote' ? 'All Categories' : 'Remote';
+                      _visibleCount = 3;
+                    });
+                  },
+                ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
           // Program Cards
-          ...ProgramData.samplePrograms.map((program) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _ProgramListCard(
-                  program: program,
-                  onTap: () => _openProgramDetails(program),
+          ...(() {
+            final programs = _filteredPrograms;
+            final visiblePrograms = programs.take(_visibleCount).toList();
+            
+            if (visiblePrograms.isEmpty) {
+              return [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: Text(
+                      'No programs found matching your criteria.',
+                      style: TextStyle(color: _textSecondary),
+                    ),
+                  ),
                 ),
-              )),
+              ];
+            }
+            
+            return visiblePrograms.map((program) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _ProgramListCard(
+                    program: program,
+                    onTap: () => _openProgramDetails(program),
+                  ),
+                )).toList();
+          })(),
               
-          const SizedBox(height: 16),
-          Center(
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _textPrimary,
-                side: const BorderSide(color: Color(0xFFE5E9F0)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          if (_visibleCount < _filteredPrograms.length) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _visibleCount += 3;
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _textPrimary,
+                  side: const BorderSide(color: Color(0xFFE5E9F0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                child: const Text('Load More Opportunities'),
               ),
-              child: const Text('Load More Opportunities'),
-            ),
-          )
+            )
+          ]
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -302,44 +531,50 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final bool hasDropdown;
+  final VoidCallback? onTap;
 
   const _FilterChip({
     required this.label,
     required this.isSelected,
     this.hasDropdown = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? _primaryBlue : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? _primaryBlue : const Color(0xFFE5E9F0),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : _textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? _primaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? _primaryBlue : const Color(0xFFE5E9F0),
           ),
-          if (hasDropdown) ...[
-            const SizedBox(width: 4),
-            Icon(
-              Icons.expand_more,
-              size: 16,
-              color: _textSecondary,
-            )
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : _textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (hasDropdown) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.expand_more,
+                size: 16,
+                color: isSelected ? Colors.white : _textSecondary,
+              )
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

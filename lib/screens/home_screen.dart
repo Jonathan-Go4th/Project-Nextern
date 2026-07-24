@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'app_session.dart';
 import 'browse_programs_screen.dart';
 import 'program_details_screen.dart';
+import 'program_learning_screen.dart';
+import '../widgets/notification_badge.dart';
+import '../services/announcement_service.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -36,6 +39,38 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String _displayName = 'Alex';
   String _email = '';
+  final PageController _carouselController = PageController();
+  int _currentCarouselIndex = 0;
+
+  final List<Map<String, dynamic>> _activePrograms = [
+    {
+      'title': 'UX Engineering Track',
+      'completion': 0.33,
+      'date': 'Nov 15',
+      'currentModule': 'Wireframing Fundamentals',
+      'status': 'IN PROGRESS'
+    },
+    {
+      'title': 'Flutter Development',
+      'completion': 0.35,
+      'date': 'Dec 10',
+      'currentModule': 'State Management',
+      'status': 'IN PROGRESS'
+    }
+  ];
+
+
+  final List<Map<String, String>> _pendingAssignments = [
+    {
+      'name': 'Midterm UI Prototype',
+      'dueDate': 'Oct 30, 11:59 PM',
+    },
+    {
+      'name': 'User Research Report',
+      'dueDate': 'Nov 02, 10:00 AM',
+    }
+  ];
+
 
   @override
   void initState() {
@@ -58,6 +93,12 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       // Keep the safe fallback values if profile loading fails.
     }
+  }
+
+  @override
+  void dispose() {
+    _carouselController.dispose();
+    super.dispose();
   }
 
   String get _profileInitials {
@@ -156,7 +197,15 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         return;
       case 3:
-        await _openLearnerProfile();
+        setState(() {
+          _selectedIndex = 3;
+        });
+        await Navigator.of(context).pushNamed('/profile');
+        if (mounted) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        }
         return;
     }
   }
@@ -359,13 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF3C4554),
-            ),
-          ),
+          const NotificationBadge(iconColor: Color(0xFF3C4554)),
           const SizedBox(width: 8),
         ],
       ),
@@ -391,135 +434,101 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
 
-          _DashboardCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Course Completion',
-                      style: TextStyle(
-                        color: _textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Icon(
-                      Icons.trending_up_rounded,
-                      color: _primaryBlue,
-                      size: 21,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-                Center(
-                  child: SizedBox(
-                    width: 132,
-                    height: 132,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 132,
-                          height: 132,
-                          child: CircularProgressIndicator(
-                            value: 0.75,
-                            strokeWidth: 9,
-                            backgroundColor: Color(0xFFE4E9FF),
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(_primaryBlue),
-                            strokeCap: StrokeCap.round,
-                          ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              '75%',
-                              style: TextStyle(
-                                color: _textPrimary,
-                                fontSize: 31,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: _textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                const Text(
-                  'You are on track to complete the UX Engineering track by Nov 15.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _textSecondary,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+          // Course Completion Carousel
+          SizedBox(
+            height: 495,
+            child: PageView.builder(
+              controller: _carouselController,
+              itemCount: _activePrograms.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentCarouselIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                final program = _activePrograms[index];
+                return _ActiveProgramWidget(
+                  title: program['title'] as String,
+                  completion: program['completion'] as double,
+                  date: program['date'] as String,
+                  currentModule: program['currentModule'] as String,
+                  status: program['status'] as String,
+                );
+              },
             ),
           ),
-          const SizedBox(height: 18),
-
-          _DashboardCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Current Module',
-                  style: TextStyle(
-                    color: _textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+          if (_activePrograms.length > 1) ...[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _activePrograms.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: _currentCarouselIndex == index ? 24 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: _currentCarouselIndex == index
+                        ? _primaryBlue
+                        : const Color(0xFFD9DEE8),
                   ),
                 ),
-                const SizedBox(height: 18),
-                const _ModuleRow(
-                  title: 'Wireframing Fundamentals',
-                  status: 'IN PROGRESS',
-                  active: true,
-                ),
-                const Divider(
-                  height: 30,
-                  color: Color(0xFFE7EAF0),
-                ),
-                const _ModuleRow(
-                  title: 'Prototyping in Figma',
-                  status: 'LOCKED',
-                  active: false,
-                ),
-                const SizedBox(height: 22),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryBlue,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Resume Learning',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ],
+          const SizedBox(height: 26),
+
+          // Announcement
+          const Text(
+            'Announcement',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ListenableBuilder(
+            listenable: AnnouncementService.instance,
+            builder: (context, child) {
+              final announcement = AnnouncementService.instance.announcement;
+              return _AnnouncementCard(
+                title: announcement['title'] ?? '',
+                body: announcement['body'] ?? '',
+                date: announcement['date'] ?? '',
+                link: announcement['link'] ?? '',
+                image: announcement['image'] ?? '',
+              );
+            },
+          ),
+          const SizedBox(height: 26),
+
+          // Pending Assignments
+          const Text(
+            'Pending Assignments',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Column(
+            children: _pendingAssignments.map((assignment) {
+              return _PendingAssignmentTile(
+                name: assignment['name']!,
+                dueDate: assignment['dueDate']!,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ProgramLearningScreen(),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
           ),
           const SizedBox(height: 26),
 
@@ -860,6 +869,448 @@ class _Tag extends StatelessWidget {
           color: Color(0xFF6E7888),
           fontSize: 9,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveProgramWidget extends StatelessWidget {
+  const _ActiveProgramWidget({
+    required this.title,
+    required this.completion,
+    required this.date,
+    required this.currentModule,
+    required this.status,
+  });
+
+  final String title;
+  final double completion;
+  final String date;
+  final String currentModule;
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const ProgramLearningScreen(),
+          ),
+        );
+      },
+      child: _DashboardCard(
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(
+                Icons.trending_up_rounded,
+                color: _primaryBlue,
+                size: 21,
+              ),
+            ],
+          ),
+          const SizedBox(height: 25),
+          Center(
+            child: SizedBox(
+              width: 132,
+              height: 132,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 132,
+                    height: 132,
+                    child: CircularProgressIndicator(
+                      value: completion,
+                      strokeWidth: 9,
+                      backgroundColor: const Color(0xFFE4E9FF),
+                      valueColor: const AlwaysStoppedAnimation<Color>(_primaryBlue),
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${(completion * 100).toInt()}%',
+                        style: const TextStyle(
+                          color: _textPrimary,
+                          fontSize: 31,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Text(
+                        'Completed',
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Text(
+            'You are on track to complete this program by $date.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _textSecondary,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 22),
+          const Divider(height: 1, color: Color(0xFFE7EAF0)),
+          const SizedBox(height: 22),
+          const Text(
+            'Current Module',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _ModuleRow(
+            title: currentModule,
+            status: status,
+            active: true,
+          ),
+          const SizedBox(height: 22),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProgramLearningScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryBlue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(48),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Resume Learning',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+}
+
+class _AnnouncementCard extends StatelessWidget {
+  const _AnnouncementCard({
+    required this.title,
+    required this.body,
+    required this.date,
+    this.link = '',
+    this.image = '',
+  });
+  
+  final String title;
+  final String body;
+  final String date;
+  final String link;
+  final String image;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.campaign_outlined, color: _primaryBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                date,
+                style: const TextStyle(
+                  color: _textSecondary,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            body,
+            style: const TextStyle(
+              color: _textSecondary,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          if (link.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.link, color: _primaryBlue, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  link,
+                  style: const TextStyle(
+                    color: _primaryBlue,
+                    fontSize: 13,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (image.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE4E9FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Icon(Icons.image, color: _primaryBlue, size: 32),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingAssignmentTile extends StatelessWidget {
+  const _PendingAssignmentTile({
+    required this.name,
+    required this.dueDate,
+    required this.onTap,
+  });
+
+  final String name;
+  final String dueDate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E9F0)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF7E6),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.assignment_late_outlined, color: Color(0xFFFF9800)),
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(
+            color: _textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.access_time, size: 14, color: _textSecondary),
+              const SizedBox(width: 4),
+              Text(
+                dueDate,
+                style: const TextStyle(
+                  color: _textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: _textSecondary),
+      ),
+    );
+  }
+}
+
+class _NotificationItem extends StatelessWidget {
+  const _NotificationItem({
+    required this.title,
+    required this.time,
+    required this.content,
+    required this.isRead,
+    required this.onMarkAsRead,
+    required this.onDelete,
+  });
+
+  final String title;
+  final String time;
+  final String content;
+  final bool isRead;
+  final VoidCallback onMarkAsRead;
+  final VoidCallback onDelete;
+
+  void _showNotificationContent(BuildContext context) {
+    onMarkAsRead();
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                time,
+                style: const TextStyle(
+                  color: _textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                content,
+                style: const TextStyle(
+                  color: _textPrimary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close', style: TextStyle(color: _primaryBlue)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _showNotificationContent(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: isRead ? const Color(0xFFF0F3F8) : const Color(0xFFE8ECFF),
+              child: Icon(
+                Icons.notifications_active_outlined,
+                color: isRead ? const Color(0xFF7C8798) : _primaryBlue,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isRead ? const Color(0xFF7C8798) : _textPrimary,
+                      fontSize: 14,
+                      fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    time,
+                    style: const TextStyle(
+                      color: _textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: _textSecondary, size: 20),
+              onSelected: (String value) {
+                if (value == 'read') {
+                  onMarkAsRead();
+                } else if (value == 'delete') {
+                  onDelete();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                if (!isRead)
+                  const PopupMenuItem<String>(
+                    value: 'read',
+                    child: Text('Mark as read'),
+                  ),
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete notification'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

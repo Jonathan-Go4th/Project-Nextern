@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'browse_programs_screen.dart';
+import 'program_learning_screen.dart';
+import '../services/notification_service.dart';
+import '../services/enrollment_service.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -17,6 +20,26 @@ class ProgramDetailsScreen extends StatefulWidget {
 }
 
 class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
+
+  void _showApplicationModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return _ApplicationFormModal(
+          onSubmit: (reason) {
+            EnrollmentService.instance.submitApplication(
+              programTitle: widget.program.title,
+              reason: reason,
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final program = widget.program;
@@ -263,24 +286,66 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 3,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Apply Now',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    child: ListenableBuilder(
+                      listenable: EnrollmentService.instance,
+                      builder: (context, child) {
+                        final _enrollmentStatus = EnrollmentService.instance.getStatus(widget.program.title);
+                        return ElevatedButton(
+                          onPressed: _enrollmentStatus == EnrollmentStatus.pending
+                              ? null
+                              : () {
+                                  if (_enrollmentStatus == EnrollmentStatus.granted) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const ProgramLearningScreen(),
+                                      ),
+                                    );
+                                  } else {
+                                    _showApplicationModal();
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _enrollmentStatus == EnrollmentStatus.pending
+                                ? const Color(0xFFFFF9E6)
+                                : _primaryBlue,
+                            foregroundColor: _enrollmentStatus == EnrollmentStatus.pending
+                                ? const Color(0xFFF59E0B)
+                                : Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: _enrollmentStatus == EnrollmentStatus.pending
+                                  ? const BorderSide(color: Color(0xFFFCD34D))
+                                  : BorderSide.none,
+                            ),
+                          ),
+                          child: _enrollmentStatus == EnrollmentStatus.pending
+                              ? const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.access_time, size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Under Review',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Text(
+                                  _enrollmentStatus == EnrollmentStatus.granted
+                                      ? 'Continue'
+                                      : 'Apply Now',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        );
+                      }
                     ),
                   ),
                 ],
@@ -403,6 +468,118 @@ class _DetailRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ApplicationFormModal extends StatefulWidget {
+  final ValueChanged<String> onSubmit;
+
+  const _ApplicationFormModal({required this.onSubmit});
+
+  @override
+  State<_ApplicationFormModal> createState() => _ApplicationFormModalState();
+}
+
+class _ApplicationFormModalState extends State<_ApplicationFormModal> {
+  final TextEditingController _reasonController = TextEditingController();
+  final TextEditingController _portfolioController = TextEditingController();
+  String _selectedExperience = 'Entry-level';
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    _portfolioController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_reasonController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please provide a reason for joining.')),
+      );
+      return;
+    }
+    Navigator.pop(context);
+    widget.onSubmit(_reasonController.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 24,
+        right: 24,
+        top: 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Application Form', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, color: _textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Experience Level', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _selectedExperience,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: ['Student', 'Entry-level', 'Mid-level', 'Senior-level']
+                .map((exp) => DropdownMenuItem(value: exp, child: Text(exp)))
+                .toList(),
+            onChanged: (val) {
+              if (val != null) setState(() => _selectedExperience = val);
+            },
+          ),
+          const SizedBox(height: 16),
+          const Text('Reason for joining', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _reasonController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: 'Why do you want to join this program?',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('Portfolio / LinkedIn Profile (Optional)', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _portfolioController,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.link),
+              hintText: 'https://...',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryBlue,
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Submit Application', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }

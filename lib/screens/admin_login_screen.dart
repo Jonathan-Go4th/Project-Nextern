@@ -248,36 +248,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       },
                     ),
                     const SizedBox(height: 18),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const _AdminFieldLabel('Password'),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Password recovery will be added later.',
-                                ),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 24),
-                            tapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: _primaryBlue,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    const _AdminFieldLabel('Password'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _passwordController,
@@ -313,7 +284,33 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password recovery will be added later.'),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 24),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: _primaryBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _isLoggingIn ? null : _login,
                       style: ElevatedButton.styleFrom(
@@ -340,6 +337,58 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
+                    ),
+                    const SizedBox(height: 22),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider(color: Color(0xFFE5E9F0))),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'Or continue with',
+                            style: TextStyle(color: Color(0xFF7C8798), fontSize: 11),
+                          ),
+                        ),
+                        Expanded(child: Divider(color: Color(0xFFE5E9F0))),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    OutlinedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Google authentication will be added later.'),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF1B2333),
+                        elevation: 0,
+                        minimumSize: const Size.fromHeight(48),
+                        side: const BorderSide(color: Color(0xFFE5E9F0)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/google_logo.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Google',
+                            style: TextStyle(
+                              color: Color(0xFF1B2333),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 18),
                     TextButton(
