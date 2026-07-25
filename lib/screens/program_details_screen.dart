@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'browse_programs_screen.dart';
+import '../models/program.dart';
+import '../services/program_store.dart';
 import 'program_learning_screen.dart';
-import '../services/notification_service.dart';
 import '../services/enrollment_service.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
@@ -11,7 +11,7 @@ const Color _textPrimary = Color(0xFF202533);
 const Color _textSecondary = Color(0xFF7C8798);
 
 class ProgramDetailsScreen extends StatefulWidget {
-  final ProgramData program;
+  final Program program;
 
   const ProgramDetailsScreen({super.key, required this.program});
 
@@ -43,12 +43,11 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final program = widget.program;
-    bool isProgram = program.category == 'PROGRAM';
 
     return Scaffold(
       backgroundColor: _background,
       appBar: AppBar(
-        backgroundColor: Colors.white.withOpacity(0.9),
+        backgroundColor: Colors.white.withValues(alpha: 0.9),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -83,12 +82,22 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
+                  gradient: program.imageUrl == null
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF3F5BF6), Color(0xFF181C1E)],
+                        )
+                      : null,
                   color: const Color(0xFF181C1E),
-                  image: const DecorationImage(
-                    image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBRLMT7A6qJiQ7rlwVMobLypRC5k8PGCUDLi6H0-DOZ8qMy1O9ELxF2sQEx5eezFcaRyTV1iZ7DgzUIp5hJYUqljE5H5x1jNKxh3rUJrquSgg_9zPcr-eXPPeR2YrTQUhTgnN_CpUFY6QtMFQV0k-CJ0YkRoX2sxyDRMgEHmMsTNo-156JrGQ54LqhEWsnB6jFhMLlEV5J6tMF0_gYtRFwz-rh73MxxIQ3gppiMNJMknMOP4N1QeL3_BZ2Fwxs-xHOkUHMXJLDSeYQ'),
-                    fit: BoxFit.cover,
-                    opacity: 0.6,
-                  ),
+                  image: program.imageUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(program.imageUrl!),
+                          fit: BoxFit.cover,
+                          opacity: 0.6,
+                          onError: (exception, stackTrace) {},
+                        )
+                      : null,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -144,7 +153,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
               _DetailsCard(
                 title: 'About the Program',
                 child: Text(
-                  program.description + '\n\nMaster the fundamentals in this intensive program. Designed for aspiring professionals, this program covers the entire lifecycle—from research to high-fidelity prototyping and testing. You will build a comprehensive portfolio piece through hands-on, real-world project simulations.',
+                  program.fullDescription,
                   style: const TextStyle(
                     color: _textSecondary,
                     fontSize: 15,
@@ -157,17 +166,22 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
               // What You'll Learn
               _DetailsCard(
                 title: "What You'll Learn",
-                child: Column(
-                  children: [
-                    _LearnRow(icon: Icons.psychology, title: 'User Research', desc: 'Conduct interviews and analyze qualitative data.'),
-                    const SizedBox(height: 16),
-                    _LearnRow(icon: Icons.account_tree, title: 'Wireframing', desc: 'Create structural layouts and user flows.'),
-                    const SizedBox(height: 16),
-                    _LearnRow(icon: Icons.palette, title: 'High-Fidelity Design', desc: 'Apply typography, color theory, and visual hierarchy.'),
-                    const SizedBox(height: 16),
-                    _LearnRow(icon: Icons.touch_app, title: 'Prototyping', desc: 'Build interactive, testable mockups.'),
-                  ],
-                ),
+                child: program.learningOutcomes.isEmpty
+                    ? const Text(
+                        'Learning outcomes for this program will be shared soon.',
+                        style: TextStyle(color: _textSecondary, fontSize: 14),
+                      )
+                    : Column(
+                        children: [
+                          for (var i = 0; i < program.learningOutcomes.length; i++) ...[
+                            if (i > 0) const SizedBox(height: 16),
+                            _LearnRow(
+                              icon: _learnIconFor(i),
+                              title: program.learningOutcomes[i],
+                            ),
+                          ],
+                        ],
+                      ),
               ),
               const SizedBox(height: 16),
 
@@ -176,54 +190,67 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                 title: 'Details',
                 child: Column(
                   children: [
-                    _DetailRow(icon: Icons.calendar_month, label: 'Duration', value: program.tags.length > 2 ? program.tags[2] : '8 Weeks'),
+                    _DetailRow(icon: Icons.calendar_month, label: 'Duration', value: program.duration ?? 'N/A'),
                     const Divider(color: Color(0xFFE5E9F0), height: 24),
-                    _DetailRow(icon: Icons.schedule, label: 'Effort', value: '15 hrs/week'),
+                    _DetailRow(icon: Icons.schedule, label: 'Effort', value: program.effort ?? 'N/A'),
                     const Divider(color: Color(0xFFE5E9F0), height: 24),
-                    _DetailRow(icon: Icons.school, label: 'Level', value: 'Beginner'),
+                    _DetailRow(icon: Icons.school, label: 'Level', value: program.level ?? 'N/A'),
                     const Divider(color: Color(0xFFE5E9F0), height: 24),
-                    _DetailRow(icon: Icons.language, label: 'Format', value: '100% Online'),
+                    _DetailRow(icon: Icons.language, label: 'Format', value: program.format ?? 'N/A'),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
               // Lead Instructor
-              _DetailsCard(
-                title: 'Lead Instructor',
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 24,
-                      backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCAF_wOhdZzNBsN5VbuYGRdZEsu0Vv9ad5Ur6emGaQgxRGyIcyakSX9n7lv23nemkXPvBmWwaw0sRzQwQn6mQrE6WQkMxfM23E6l0ZBxuXTnpmr48LMuNxwlj5D5jiwxlX9a39k6ADV6BVbm70BVBKn0EgZ3DS4GZtHi1ScDdsZkFAivE-KYb2bRRDWE-zyJbc6XRhyqrAPDWDjwFpPdvewnrVkqzNBg25YnKtGx2gg-IrstdSBi7hljkXUoqdtsifaUUcA3-Tfvt8'),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Sarah Jenkins',
-                            style: TextStyle(
-                              color: _textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+              if (program.instructorName != null)
+                _DetailsCard(
+                  title: 'Lead Instructor',
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: const Color(0xFFE5E9F0),
+                        child: Text(
+                          program.instructorName!.isNotEmpty
+                              ? program.instructorName![0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: _primaryBlue,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Senior Product Designer @ ${program.company}',
-                            style: const TextStyle(
-                              color: _textSecondary,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              program.instructorName!,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              program.instructorRole != null
+                                  ? '${program.instructorRole} @ ${program.company}'
+                                  : program.company,
+                              style: const TextStyle(
+                                color: _textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
 
@@ -235,7 +262,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 border: const Border(
                   top: BorderSide(color: Color(0xFFE5E9F0)),
                 ),
@@ -250,37 +277,38 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          widget.program.isSaved = !widget.program.isSaved;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              widget.program.isSaved
-                                  ? 'Program saved to favorites'
-                                  : 'Program removed from favorites',
+                    child: ListenableBuilder(
+                      listenable: ProgramStore.instance,
+                      builder: (context, child) {
+                        final isSaved = ProgramStore.instance.savedProgramIds.contains(program.id);
+                        return OutlinedButton(
+                          onPressed: () {
+                            ProgramStore.instance.toggleSaved(program.id);
+                            final nowSaved = ProgramStore.instance.savedProgramIds.contains(program.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  nowSaved
+                                      ? 'Program saved to favorites'
+                                      : 'Program removed from favorites',
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: Color(0xFFE5E9F0)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            duration: const Duration(seconds: 2),
+                          ),
+                          child: Icon(
+                            isSaved ? Icons.bookmark : Icons.bookmark_border,
+                            color: isSaved ? _primaryBlue : _textSecondary,
                           ),
                         );
                       },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: Color(0xFFE5E9F0)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Icon(
-                        widget.program.isSaved
-                            ? Icons.bookmark
-                            : Icons.bookmark_border,
-                        color: widget.program.isSaved
-                            ? _primaryBlue
-                            : _textSecondary,
-                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -289,12 +317,13 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                     child: ListenableBuilder(
                       listenable: EnrollmentService.instance,
                       builder: (context, child) {
-                        final _enrollmentStatus = EnrollmentService.instance.getStatus(widget.program.title);
+                        final enrollmentStatus = EnrollmentService.instance.getStatus(widget.program.title);
+                        final registrationClosed = !program.registrationOpen;
                         return ElevatedButton(
-                          onPressed: _enrollmentStatus == EnrollmentStatus.pending
+                          onPressed: registrationClosed || enrollmentStatus == EnrollmentStatus.pending
                               ? null
                               : () {
-                                  if (_enrollmentStatus == EnrollmentStatus.granted) {
+                                  if (enrollmentStatus == EnrollmentStatus.granted) {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
                                         builder: (context) => const ProgramLearningScreen(),
@@ -305,22 +334,26 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _enrollmentStatus == EnrollmentStatus.pending
+                            backgroundColor: enrollmentStatus == EnrollmentStatus.pending
                                 ? const Color(0xFFFFF9E6)
-                                : _primaryBlue,
-                            foregroundColor: _enrollmentStatus == EnrollmentStatus.pending
+                                : registrationClosed
+                                    ? const Color(0xFFE5E9F0)
+                                    : _primaryBlue,
+                            foregroundColor: enrollmentStatus == EnrollmentStatus.pending
                                 ? const Color(0xFFF59E0B)
-                                : Colors.white,
+                                : registrationClosed
+                                    ? _textSecondary
+                                    : Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
-                              side: _enrollmentStatus == EnrollmentStatus.pending
+                              side: enrollmentStatus == EnrollmentStatus.pending
                                   ? const BorderSide(color: Color(0xFFFCD34D))
                                   : BorderSide.none,
                             ),
                           ),
-                          child: _enrollmentStatus == EnrollmentStatus.pending
+                          child: enrollmentStatus == EnrollmentStatus.pending
                               ? const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -336,9 +369,11 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                                   ],
                                 )
                               : Text(
-                                  _enrollmentStatus == EnrollmentStatus.granted
-                                      ? 'Continue'
-                                      : 'Apply Now',
+                                  registrationClosed
+                                      ? 'Registration Closed'
+                                      : enrollmentStatus == EnrollmentStatus.granted
+                                          ? 'Continue'
+                                          : 'Apply Now',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -355,6 +390,18 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
         ],
       ),
     );
+  }
+
+  IconData _learnIconFor(int index) {
+    const icons = [
+      Icons.psychology,
+      Icons.account_tree,
+      Icons.palette,
+      Icons.touch_app,
+      Icons.insights,
+      Icons.build,
+    ];
+    return icons[index % icons.length];
   }
 }
 
@@ -395,9 +442,8 @@ class _DetailsCard extends StatelessWidget {
 class _LearnRow extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String desc;
 
-  const _LearnRow({required this.icon, required this.title, required this.desc});
+  const _LearnRow({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -407,26 +453,13 @@ class _LearnRow extends StatelessWidget {
         Icon(icon, color: _primaryBlue, size: 24),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: _textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                desc,
-                style: const TextStyle(
-                  color: _textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -531,7 +564,7 @@ class _ApplicationFormModalState extends State<_ApplicationFormModal> {
           const Text('Experience Level', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: _selectedExperience,
+            initialValue: _selectedExperience,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
