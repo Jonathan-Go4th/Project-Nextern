@@ -4,6 +4,7 @@ import '../models/program.dart';
 import '../services/program_store.dart';
 import 'program_learning_screen.dart';
 import '../services/enrollment_service.dart';
+import '../widgets/program_application_form.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -20,21 +21,25 @@ class ProgramDetailsScreen extends StatefulWidget {
 }
 
 class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
-
   void _showApplicationModal() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return _ApplicationFormModal(
-          onSubmit: (reason) {
-            EnrollmentService.instance.submitApplication(
-              programTitle: widget.program.title,
-              reason: reason,
-            );
-          },
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: ProgramApplicationForm(programTitle: widget.program.title),
+            ),
+          ),
         );
       },
     );
@@ -46,15 +51,20 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
 
     return Scaffold(
       backgroundColor: _background,
+
       appBar: AppBar(
         backgroundColor: Colors.white.withValues(alpha: 0.9),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: _textSecondary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
+
         title: const Text(
           'NEXTERN',
           style: TextStyle(
@@ -64,22 +74,26 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
             letterSpacing: 0.7,
           ),
         ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.share_outlined, color: _textSecondary),
             onPressed: () {},
           ),
+
           const SizedBox(width: 8),
         ],
       ),
+
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
+
             children: [
-              // Hero Section
               Container(
                 height: 300,
+
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: program.imageUrl == null
@@ -99,22 +113,32 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                         )
                       : null,
                 ),
+
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24),
+
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
+
                     crossAxisAlignment: CrossAxisAlignment.start,
+
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+
                             decoration: BoxDecoration(
                               color: _primaryBlue,
                               borderRadius: BorderRadius.circular(4),
                             ),
+
                             child: Text(
                               program.category,
+
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -122,36 +146,40 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                               ),
                             ),
                           ),
+
                           const SizedBox(width: 8),
+
                           Text(
                             program.company,
+
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 12),
+
                       Text(
                         program.title,
+
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          height: 1.2,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
 
-              // About
+              const SizedBox(height: 24),
               _DetailsCard(
                 title: 'About the Program',
+
                 child: Text(
                   program.fullDescription,
                   style: const TextStyle(
@@ -161,9 +189,9 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
-              // What You'll Learn
               _DetailsCard(
                 title: "What You'll Learn",
                 child: program.learningOutcomes.isEmpty
@@ -183,11 +211,12 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                         ],
                       ),
               ),
+
               const SizedBox(height: 16),
 
-              // Details
               _DetailsCard(
                 title: 'Details',
+
                 child: Column(
                   children: [
                     _DetailRow(icon: Icons.calendar_month, label: 'Duration', value: program.duration ?? 'N/A'),
@@ -200,6 +229,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 16),
 
               // Lead Instructor
@@ -254,11 +284,11 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
             ],
           ),
 
-          // Sticky Bottom Action Bar
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
+
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
@@ -311,11 +341,15 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                       },
                     ),
                   ),
+
                   const SizedBox(width: 12),
+
                   Expanded(
                     flex: 3,
+
                     child: ListenableBuilder(
                       listenable: EnrollmentService.instance,
+
                       builder: (context, child) {
                         final enrollmentStatus = EnrollmentService.instance.getStatus(widget.program.title);
                         final registrationClosed = !program.registrationOpen;
@@ -326,7 +360,8 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                                   if (enrollmentStatus == EnrollmentStatus.granted) {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => const ProgramLearningScreen(),
+                                        builder: (_) =>
+                                            const ProgramLearningScreen(),
                                       ),
                                     );
                                   } else {
@@ -380,7 +415,7 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
                                   ),
                                 ),
                         );
-                      }
+                      },
                     ),
                   ),
                 ],
@@ -415,23 +450,33 @@ class _DetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
+
       decoration: BoxDecoration(
         color: Colors.white,
+
         borderRadius: BorderRadius.circular(16),
+
         border: Border.all(color: const Color(0xFFE5E9F0)),
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           Text(
             title,
+
             style: const TextStyle(
               color: _textPrimary,
+
               fontSize: 18,
+
               fontWeight: FontWeight.w700,
             ),
           ),
+
           const SizedBox(height: 16),
+
           child,
         ],
       ),
@@ -449,9 +494,12 @@ class _LearnRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
         Icon(icon, color: _primaryBlue, size: 24),
+
         const SizedBox(width: 12),
+
         Expanded(
           child: Text(
             title,
@@ -469,150 +517,51 @@ class _LearnRow extends StatelessWidget {
 
 class _DetailRow extends StatelessWidget {
   final IconData icon;
+
   final String label;
+
   final String value;
 
-  const _DetailRow({required this.icon, required this.label, required this.value});
+  const _DetailRow({
+    required this.icon,
+
+    required this.label,
+
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
       children: [
         Row(
           children: [
             Icon(icon, size: 20, color: _textSecondary),
+
             const SizedBox(width: 8),
+
             Text(
               label,
-              style: const TextStyle(
-                color: _textSecondary,
-                fontSize: 15,
-              ),
+
+              style: const TextStyle(color: _textSecondary, fontSize: 15),
             ),
           ],
         ),
+
         Text(
           value,
+
           style: const TextStyle(
             color: _textPrimary,
+
             fontSize: 15,
+
             fontWeight: FontWeight.w600,
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ApplicationFormModal extends StatefulWidget {
-  final ValueChanged<String> onSubmit;
-
-  const _ApplicationFormModal({required this.onSubmit});
-
-  @override
-  State<_ApplicationFormModal> createState() => _ApplicationFormModalState();
-}
-
-class _ApplicationFormModalState extends State<_ApplicationFormModal> {
-  final TextEditingController _reasonController = TextEditingController();
-  final TextEditingController _portfolioController = TextEditingController();
-  String _selectedExperience = 'Entry-level';
-
-  @override
-  void dispose() {
-    _reasonController.dispose();
-    _portfolioController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_reasonController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide a reason for joining.')),
-      );
-      return;
-    }
-    Navigator.pop(context);
-    widget.onSubmit(_reasonController.text.trim());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 24,
-        right: 24,
-        top: 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Application Form', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: _textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Text('Experience Level', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedExperience,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            items: ['Student', 'Entry-level', 'Mid-level', 'Senior-level']
-                .map((exp) => DropdownMenuItem(value: exp, child: Text(exp)))
-                .toList(),
-            onChanged: (val) {
-              if (val != null) setState(() => _selectedExperience = val);
-            },
-          ),
-          const SizedBox(height: 16),
-          const Text('Reason for joining', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _reasonController,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: 'Why do you want to join this program?',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Portfolio / LinkedIn Profile (Optional)', style: TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _portfolioController,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.link),
-              hintText: 'https://...',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _submit,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryBlue,
-              minimumSize: const Size.fromHeight(50),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('Submit Application', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
     );
   }
 }
