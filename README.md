@@ -4,13 +4,13 @@
 
 Nextern is a mobile application designed to provide learners with easy access to learning programs and internships while giving administrators tools to manage programs, monitor learner progress, review assignments and enrolment requests, publish announcements, and respond to feedback through a simple and user-friendly interface.
 
-📄 For full project details, see our [App Proposal Document](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20App%20Proposal.pdf) and [Week 2 Deliverables](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20Deliverables%20Week%202.pdf).
+📄 For full project details, see our Week 3 documentation: `Nextern_Week_3_Development_Documentation.pdf` 
 
-📘 Week 3 documentation: `Nextern_Week_3_Development_Documentation_Aligned.pdf`
+🎥 Watch the [Demo Video](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
 
-🎥 Watch the [Demo Video](https://drive.google.com/file/d/1D80R41BOParI8f31nbzXNWi7wXw-dVWa/view).
+🎨 View our [Figma Wireframe (Updated)](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
 
-🎨 View our [Figma Wireframe and App Flow](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=0-1&p=f&t=6eFbiWd7greXp48c-0).
+🗃️ See our project archive [App Proposal Document](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20App%20Proposal.pdf);  [Week 2 Deliverables](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20Deliverables%20Week%202.pdf);  [App Demo Video](https://drive.google.com/file/d/1D80R41BOParI8f31nbzXNWi7wXw-dVWa/view);  [Figma Wireframe (Old)](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=0-1&p=f&t=6eFbiWd7greXp48c-0).
 
 ## Objectives
 
@@ -214,9 +214,9 @@ The exact folder names may differ as the project continues to be reorganized, bu
 
 The local JSON file currently acts as an offline mock API. This keeps the app functional without a network connection and provides a reusable data structure for Browse, Home, and Program Details. The service layer and shared store are designed so that the local source can later be replaced with a remote API or backend service.
 
-## Team 18
+## Team 18 Task split
 
-- Jonathan Goforth
-- Renz Paulo Baltazar
-- Favour Chigemezu Uzochukwu
-- Sadaf
+- Jonathan Goforth : Dynamic Program Data and Saved Programs, GitHub repository management, video editing and deliverables doccumentation
+- Renz Paulo Baltazar : Figma wireframe, UI/UX design, Cross-App Functional Expansion and Workflow Improvements
+- Favour Chigemezu Uzochukwu: Program Application Form and Enrolment Submission
+- Sadaf : Merged code QA
