@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../widgets/notification_badge.dart';
+import '../services/announcement_service.dart';
+import 'admin_review_assignment_screen.dart';
+import 'admin_user_management_screen.dart';
 
 import 'app_session.dart';
 
@@ -19,6 +23,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int _selectedIndex = 0;
   String _displayName = 'Administrator';
   String _email = '';
+  final TextEditingController _announcementController = TextEditingController();
+
+  @override
+  void dispose() {
+    _announcementController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -67,16 +78,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     if (index == _selectedIndex) return;
     
     if (index == 1) {
-      Navigator.of(context).pushReplacementNamed('/admin-monitoring');
-    } else if (index != 0) {
-      setState(() {
-        _selectedIndex = index;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This admin section will be implemented next.'),
-        ),
-      );
+      Navigator.of(context).pushReplacementNamed('/admin-program-manager');
+    } else if (index == 2) {
+      Navigator.of(context).pushReplacementNamed('/admin-user-management');
+    } else if (index == 3) {
+      Navigator.of(context).pushReplacementNamed('/admin-profile');
     }
   }
 
@@ -237,6 +243,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
+  void _showAnnouncementModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (BuildContext sheetContext) {
+        return const _AnnouncementModalForm();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope<void>(
@@ -279,15 +297,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {
-              _showAction('Notifications');
-            },
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF414958),
-            ),
-          ),
+          const NotificationBadge(iconColor: Color(0xFF414958)),
           const SizedBox(width: 7),
         ],
       ),
@@ -302,133 +312,97 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 5),
-          const Text(
-            'System health and high-level metrics.',
-            style: TextStyle(
-              color: _textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 19),
-
-          const _MetricCard(
-            icon: Icons.people_outline,
-            value: '1,248',
-            label: 'Active Users',
-            change: '+12%',
-          ),
-          const SizedBox(height: 13),
-
-          const _MetricCard(
-            icon: Icons.analytics_outlined,
-            value: '84%',
-            label: 'Avg. Program Completion',
-            change: '-2%',
-            showProgress: true,
-          ),
-          const SizedBox(height: 21),
-
-          const Text(
-            'Quick Actions',
-            style: TextStyle(
-              color: _textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          ElevatedButton.icon(
-            onPressed: () {
-              _showAction('Post Announcement');
-            },
-            icon: const Icon(Icons.add, size: 17),
-            label: const Text('Post Announcement'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryBlue,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: const Size.fromHeight(47),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-
+          const SizedBox(height: 16),
+          
           Row(
             children: [
               Expanded(
-                child: _QuickActionButton(
+                child: _MetricCard(
                   icon: Icons.people_outline,
-                  label: 'Users',
-                  onPressed: () {
-                    _showAction('Users');
-                  },
+                  value: '1,248',
+                  label: 'Total Learners',
+                  change: '+12%',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
-                child: _QuickActionButton(
-                  icon: Icons.menu_book_outlined,
-                  label: 'Programs',
-                  onPressed: () {
-                    _showAction('Programs');
-                  },
+                child: _MetricCard(
+                  icon: Icons.library_books_outlined,
+                  value: '24',
+                  label: 'Active Programs',
+                  change: '+2',
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Recent Submissions',
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
+          const Text(
+            'Post Announcement',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showAnnouncementModal(context),
+              icon: const Icon(Icons.campaign),
+              label: const Text('Create New Announcement'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                foregroundColor: _primaryBlue,
+                side: const BorderSide(color: _primaryBlue, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              TextButton(
-                onPressed: () {
-                  _showAction('View all submissions');
-                },
-                child: const Text(
-                  'View All',
-                  style: TextStyle(
-                    color: _primaryBlue,
-                    fontSize: 11,
-                  ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+
+          
+          const Text(
+            'Recent Activity',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _border),
+            ),
+            child: Column(
+              children: const [
+                _ActivityTile(
+                  icon: Icons.assignment_turned_in,
+                  iconColor: Colors.green,
+                  title: 'Alex Smith submitted UX Wireframe',
+                  time: '45 mins ago',
                 ),
-              ),
-            ],
-          ),
-
-          const _SubmissionCard(
-            icon: Icons.bar_chart_outlined,
-            title: 'Data Analysis Module 3',
-            student: 'Jane Doe',
-            time: '10 mins ago',
-          ),
-          const SizedBox(height: 10),
-
-          const _SubmissionCard(
-            icon: Icons.design_services_outlined,
-            title: 'UX Wireframing Challenge',
-            student: 'Alex Smith',
-            time: '45 mins ago',
-          ),
-          const SizedBox(height: 10),
-
-          const _SubmissionCard(
-            icon: Icons.code_outlined,
-            title: 'React Component Architecture',
-            student: 'Sarah Connor',
-            time: '2 hrs ago',
+                Divider(height: 1, color: _border),
+                _ActivityTile(
+                  icon: Icons.add_circle,
+                  iconColor: _primaryBlue,
+                  title: 'New Program "React Native" created',
+                  time: '2 hours ago',
+                ),
+                Divider(height: 1, color: _border),
+                _ActivityTile(
+                  icon: Icons.forum,
+                  iconColor: Colors.orange,
+                  title: 'Jane Doe requested Help Center support',
+                  time: '3 hours ago',
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -445,23 +419,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 10),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Users',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.campaign_outlined),
-            label: 'Updates',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), activeIcon: Icon(Icons.menu_book), label: 'Programs'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Users'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
       ),
@@ -586,88 +547,143 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
-class _SubmissionCard extends StatelessWidget {
-  const _SubmissionCard({
+
+class _ActivityTile extends StatelessWidget {
+  const _ActivityTile({
     required this.icon,
+    required this.iconColor,
     required this.title,
-    required this.student,
     required this.time,
   });
 
   final IconData icon;
+  final Color iconColor;
   final String title;
-  final String student;
   final String time;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(5),
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withOpacity(0.1),
+        child: Icon(icon, color: iconColor, size: 20),
       ),
-      child: Row(
+      title: Text(title, style: const TextStyle(color: _textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+      subtitle: Text(time, style: const TextStyle(color: _textSecondary, fontSize: 12)),
+    );
+  }
+}
+
+class _AnnouncementModalForm extends StatefulWidget {
+  const _AnnouncementModalForm();
+
+  @override
+  State<_AnnouncementModalForm> createState() => _AnnouncementModalFormState();
+}
+
+class _AnnouncementModalFormState extends State<_AnnouncementModalForm> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _bodyController = TextEditingController();
+  final TextEditingController _linkController = TextEditingController();
+  bool _hasMockImage = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _bodyController.dispose();
+    _linkController.dispose();
+    super.dispose();
+  }
+
+  void _postAnnouncement() {
+    if (_titleController.text.trim().isEmpty || _bodyController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill out the title and description.')),
+      );
+      return;
+    }
+    
+    AnnouncementService.instance.updateAnnouncement(
+      title: _titleController.text.trim(),
+      body: _bodyController.text.trim(),
+      link: _linkController.text.trim(),
+      image: _hasMockImage ? 'mock_image_path' : '',
+    );
+    
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Announcement posted successfully!')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 24,
+        right: 24,
+        top: 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 37,
-            height: 37,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F3FF),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Icon(
-              icon,
-              size: 19,
-              color: _primaryBlue,
+          const Text('Create Announcement', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: 'Title',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Submitted by $student • $time',
-                  style: const TextStyle(
-                    color: _textSecondary,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 12),
+          TextField(
+            controller: _bodyController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Description',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 7,
-              vertical: 5,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE9EDFF),
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: const Text(
-              'Pending\nReview',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _primaryBlue,
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-              ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _linkController,
+            decoration: const InputDecoration(
+              labelText: 'Attach Link (Optional)',
+              prefixIcon: Icon(Icons.link),
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () {
+              setState(() {
+                _hasMockImage = !_hasMockImage;
+              });
+            },
+            icon: Icon(_hasMockImage ? Icons.check_circle : Icons.image),
+            label: Text(_hasMockImage ? 'Image Attached' : 'Upload Image/Resource'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(45),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _postAnnouncement,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryBlue,
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Post Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

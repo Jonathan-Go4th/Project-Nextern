@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/notification_badge.dart';
 import 'app_session.dart';
+import 'program_learning_screen.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -13,22 +15,37 @@ class TasksScreen extends StatefulWidget {
   State<TasksScreen> createState() => _TasksScreenState();
 }
 
-class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TasksScreenState extends State<TasksScreen> {
   int _selectedIndex = 2;
   String _displayName = 'Alex';
+  int _selectedTab = 0; // 0 for Active, 1 for Completed
+
+  final List<Map<String, dynamic>> _activePrograms = [
+    {'title': 'UX Engineering Track', 'completion': 0.33, 'dueDate': 'Due in 3 days', 'tag': 'Design'},
+    {'title': 'Flutter Fundamentals', 'completion': 0.15, 'dueDate': 'Due in 1 week', 'tag': 'Mobile'},
+    {'title': 'Advanced Prototyping', 'completion': 0.80, 'dueDate': 'Due tomorrow', 'tag': 'Design'},
+    {'title': 'State Management in Flutter', 'completion': 0.05, 'dueDate': 'Due in 2 weeks', 'tag': 'Mobile'},
+    {'title': 'Backend APIs with Node.js', 'completion': 0.50, 'dueDate': 'Due in 5 days', 'tag': 'Web'},
+    {'title': 'React Component Design', 'completion': 0.20, 'dueDate': 'Due in 10 days', 'tag': 'Web'},
+  ];
+
+  final List<Map<String, dynamic>> _completedPrograms = [
+    {'title': 'Foundations of Product Design', 'date': 'Completed on Oct 12, 2023'},
+    {'title': 'Agile Methodology Sprint', 'date': 'Completed on Aug 05, 2023'},
+    {'title': 'Intro to UI Design', 'date': 'Completed on Jan 22, 2023'},
+    {'title': 'Design Thinking Process', 'date': 'Completed on Nov 10, 2022'},
+    {'title': 'Figma Basics', 'date': 'Completed on Sep 15, 2022'},
+    {'title': 'Wireframing Principles', 'date': 'Completed on Jul 01, 2022'},
+  ];
+
+  int _visibleActiveCount = 3;
+  int _visibleCompletedCount = 3;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadProfile();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadProfile() async {
@@ -62,10 +79,24 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
     } else if (index == 1) {
       Navigator.of(context).pushReplacementNamed('/browse');
     } else if (index == 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile handled by Home screen.')),
-      );
+      Navigator.of(context).pushReplacementNamed('/profile');
     }
+  }
+
+  Future<void> _loadMore() async {
+    setState(() {
+      _isLoadingMore = true;
+    });
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+    setState(() {
+      _isLoadingMore = false;
+      if (_selectedTab == 0) {
+        _visibleActiveCount = _activePrograms.length;
+      } else {
+        _visibleCompletedCount = _completedPrograms.length;
+      }
+    });
   }
 
   @override
@@ -105,23 +136,17 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF3C4554),
-            ),
-          ),
+          const NotificationBadge(iconColor: Color(0xFF3C4554)),
           const SizedBox(width: 8),
         ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-            child: const Text(
-              'Learning Hub',
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
+            child: Text(
+              'My Learning',
               style: TextStyle(
                 color: _textPrimary,
                 fontSize: 27,
@@ -129,84 +154,10 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
               ),
             ),
           ),
-          TabBar(
-            controller: _tabController,
-            labelColor: _primaryBlue,
-            unselectedLabelColor: _textSecondary,
-            indicatorColor: _primaryBlue,
-            labelStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            tabs: const [
-              Tab(text: 'Assignments'),
-              Tab(text: 'Certificates'),
-            ],
-          ),
+          _buildSegmentedControl(),
+          const SizedBox(height: 16),
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Assignments Tab
-                ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: const [
-                    _AssignmentCard(
-                      category: 'UI/UX Design',
-                      dueStatus: 'Due: Today',
-                      isDueSoon: true,
-                      title: 'Wireframe Prototype',
-                      description: 'Design a low-fidelity interactive prototype for the main user dashboard following the new design system.',
-                      buttonText: 'Submit Assignment',
-                      buttonColor: _primaryBlue,
-                      buttonTextColor: Colors.white,
-                    ),
-                    SizedBox(height: 16),
-                    _AssignmentCard(
-                      category: 'Frontend Dev',
-                      dueStatus: 'Due: In 2 Days',
-                      isDueSoon: false,
-                      title: 'Component Library setup',
-                      description: 'Initialize the React component library structure and implement the base Typography and Button components.',
-                      buttonText: 'Submit Assignment',
-                      buttonColor: _primaryBlue,
-                      buttonTextColor: Colors.white,
-                    ),
-                    SizedBox(height: 16),
-                    _AssignmentCard(
-                      category: 'Data Analysis',
-                      dueStatus: 'Submitted',
-                      isDueSoon: false,
-                      title: 'SQL Query Optimization',
-                      description: 'Review and optimize the provided legacy queries to improve execution time by at least 30%.',
-                      buttonText: 'Under Review',
-                      buttonColor: Color(0xFFF0F2F5),
-                      buttonTextColor: _textSecondary,
-                    ),
-                  ],
-                ),
-                // Certificates Tab
-                ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: const [
-                    _CertificateCard(
-                      title: 'Foundations of Product Design',
-                      date: 'Completed on Oct 12, 2023',
-                    ),
-                    SizedBox(height: 16),
-                    _CertificateCard(
-                      title: 'Agile Methodology Sprint',
-                      date: 'Completed on Aug 05, 2023',
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            child: _selectedTab == 0 ? _buildActiveList() : _buildCompletedList(),
           ),
         ],
       ),
@@ -246,27 +197,275 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
       ),
     );
   }
+
+  Widget _buildSegmentedControl() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE5E9F0),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedTab = 0),
+                child: Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: _selectedTab == 0 ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: _selectedTab == 0
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Enrolled',
+                      style: TextStyle(
+                        color: _selectedTab == 0 ? _textPrimary : _textSecondary,
+                        fontWeight: _selectedTab == 0 ? FontWeight.w700 : FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedTab = 1),
+                child: Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: _selectedTab == 1 ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: _selectedTab == 1
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Completed',
+                      style: TextStyle(
+                        color: _selectedTab == 1 ? _textPrimary : _textSecondary,
+                        fontWeight: _selectedTab == 1 ? FontWeight.w700 : FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveList() {
+    final count = _visibleActiveCount;
+    final total = _activePrograms.length;
+    final hasMore = count < total;
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(20),
+      itemCount: count + (hasMore ? 1 : 0),
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        if (index == count) {
+          return _buildLoadMoreButton();
+        }
+        final item = _activePrograms[index];
+        return _ActiveCourseCard(
+          title: item['title'],
+          completion: item['completion'],
+          dueDate: item['dueDate'],
+          tag: item['tag'],
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ProgramLearningScreen(),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCompletedList() {
+    final count = _visibleCompletedCount;
+    final total = _completedPrograms.length;
+    final hasMore = count < total;
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(20),
+      itemCount: count + (hasMore ? 1 : 0),
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        if (index == count) {
+          return _buildLoadMoreButton();
+        }
+        final item = _completedPrograms[index];
+        return _CompletedCourseCard(
+          title: item['title'],
+          date: item['date'],
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadMoreButton() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: _isLoadingMore
+            ? const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(_primaryBlue),
+              )
+            : TextButton(
+                onPressed: _loadMore,
+                style: TextButton.styleFrom(
+                  foregroundColor: _primaryBlue,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Color(0xFFE5E9F0)),
+                  ),
+                ),
+                child: const Text(
+                  'Load More',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
 }
 
-class _AssignmentCard extends StatelessWidget {
-  final String category;
-  final String dueStatus;
-  final bool isDueSoon;
+class _ActiveCourseCard extends StatelessWidget {
   final String title;
-  final String description;
-  final String buttonText;
-  final Color buttonColor;
-  final Color buttonTextColor;
+  final double completion;
+  final String dueDate;
+  final String tag;
+  final VoidCallback onTap;
 
-  const _AssignmentCard({
-    required this.category,
-    required this.dueStatus,
-    required this.isDueSoon,
+  const _ActiveCourseCard({
     required this.title,
-    required this.description,
-    required this.buttonText,
-    required this.buttonColor,
-    required this.buttonTextColor,
+    required this.completion,
+    required this.dueDate,
+    required this.tag,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E9F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F2F5),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    tag,
+                    style: const TextStyle(
+                      color: _textSecondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  dueDate,
+                  style: const TextStyle(
+                    color: Color(0xFFD32F2F),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: _textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: completion,
+                      minHeight: 8,
+                      backgroundColor: const Color(0xFFE4E9FF),
+                      valueColor: const AlwaysStoppedAnimation<Color>(_primaryBlue),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  '${(completion * 100).toInt()}%',
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompletedCourseCard extends StatelessWidget {
+  final String title;
+  final String date;
+
+  const _CompletedCourseCard({
+    required this.title,
+    required this.date,
   });
 
   @override
@@ -282,148 +481,66 @@ class _AssignmentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F2F5),
-                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFFE4F5E9),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  category,
-                  style: const TextStyle(
-                    color: _textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: const Icon(
+                  Icons.workspace_premium,
+                  color: Color(0xFF43A047),
+                  size: 28,
                 ),
               ),
-              Text(
-                dueStatus,
-                style: TextStyle(
-                  color: isDueSoon ? const Color(0xFFD32F2F) : _textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Downloading Certificate...')),
+                );
+              },
+              icon: const Icon(Icons.download_rounded, size: 20),
+              label: const Text('Download Certificate'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: buttonColor,
-                foregroundColor: buttonTextColor,
+                backgroundColor: _primaryBlue,
+                foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                buttonText,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CertificateCard extends StatelessWidget {
-  final String title;
-  final String date;
-
-  const _CertificateCard({
-    required this.title,
-    required this.date,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E9F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F2F5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.workspace_premium,
-              color: _primaryBlue,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(
-                    color: _textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            style: IconButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFE5E9F0)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(
-              Icons.download_rounded,
-              color: _primaryBlue,
             ),
           ),
         ],

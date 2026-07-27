@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'app_session.dart';
-import 'browse_programs_screen.dart';
 import 'program_details_screen.dart';
+import 'program_learning_screen.dart';
+import '../models/program.dart';
+import '../services/program_store.dart';
+import '../widgets/notification_badge.dart';
+import '../services/announcement_service.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -25,22 +29,39 @@ class _HomeScreenState extends State<HomeScreen> {
     '/program-listing-screen',
   ];
 
-  static const List<String> _programDetailsRoutes = <String>[
-    '/program-details',
-    '/program-detail',
-    '/details',
-    '/programDetails',
-    '/program-details-screen',
-  ];
-
   int _selectedIndex = 0;
   String _displayName = 'Alex';
   String _email = '';
+  final PageController _carouselController = PageController();
+  int _currentCarouselIndex = 0;
+
+  final List<Map<String, dynamic>> _activePrograms = [
+    {
+      'title': 'UX Engineering Track',
+      'completion': 0.33,
+      'date': 'Nov 15',
+      'currentModule': 'Wireframing Fundamentals',
+      'status': 'IN PROGRESS',
+    },
+    {
+      'title': 'Flutter Development',
+      'completion': 0.35,
+      'date': 'Dec 10',
+      'currentModule': 'State Management',
+      'status': 'IN PROGRESS',
+    },
+  ];
+
+  final List<Map<String, String>> _pendingAssignments = [
+    {'name': 'Midterm UI Prototype', 'dueDate': 'Oct 30, 11:59 PM'},
+    {'name': 'User Research Report', 'dueDate': 'Nov 02, 10:00 AM'},
+  ];
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    ProgramStore.instance.initialize();
   }
 
   Future<void> _loadProfile() async {
@@ -58,6 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       // Keep the safe fallback values if profile loading fails.
     }
+  }
+
+  @override
+  void dispose() {
+    _carouselController.dispose();
+    super.dispose();
   }
 
   String get _profileInitials {
@@ -86,8 +113,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }) async {
     for (final String routeName in routeNames) {
       try {
-        final Future<dynamic> navigation =
-            Navigator.of(context).pushNamed(routeName);
+        final Future<dynamic> navigation = Navigator.of(
+          context,
+        ).pushNamed(routeName);
         await navigation;
         return true;
       } on FlutterError {
@@ -117,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openProgramDetails(ProgramData program) async {
+  Future<void> _openProgramDetails(Program program) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ProgramDetailsScreen(program: program),
@@ -156,7 +184,15 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         return;
       case 3:
-        await _openLearnerProfile();
+        setState(() {
+          _selectedIndex = 3;
+        });
+        await Navigator.of(context).pushNamed('/profile');
+        if (mounted) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        }
         return;
     }
   }
@@ -167,8 +203,9 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext sheetContext) {
-        final double bottomInset =
-            MediaQuery.of(sheetContext).viewInsets.bottom;
+        final double bottomInset = MediaQuery.of(
+          sheetContext,
+        ).viewInsets.bottom;
 
         return Padding(
           padding: EdgeInsets.only(bottom: bottomInset),
@@ -221,10 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? 'Email will appear after your next login'
                         : _email,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: _textSecondary,
-                      fontSize: 13,
-                    ),
+                    style: const TextStyle(color: _textSecondary, fontSize: 13),
                   ),
                   const SizedBox(height: 22),
                   Container(
@@ -235,9 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF7F9FC),
                       borderRadius: BorderRadius.circular(13),
-                      border: Border.all(
-                        color: const Color(0xFFE5E9F0),
-                      ),
+                      border: Border.all(color: const Color(0xFFE5E9F0)),
                     ),
                     child: const Row(
                       children: [
@@ -270,9 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: const Text('Log out'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFD32F2F),
-                        side: const BorderSide(
-                          color: Color(0xFFFFCDD2),
-                        ),
+                        side: const BorderSide(color: Color(0xFFFFCDD2)),
                         backgroundColor: const Color(0xFFFFF7F7),
                         minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
@@ -312,10 +342,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/login',
-      (Route<dynamic> route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+  }
+
+  IconData _iconForCategory(String category) {
+    switch (category.toUpperCase()) {
+      case 'INTERNSHIP':
+        return Icons.work_outline;
+      case 'PROGRAM':
+        return Icons.menu_book_outlined;
+      default:
+        return Icons.school_outlined;
+    }
   }
 
   @override
@@ -323,325 +363,316 @@ class _HomeScreenState extends State<HomeScreen> {
     return PopScope<void>(
       canPop: false,
       child: Scaffold(
-      backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 0,
-        leadingWidth: 62,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 14),
-          child: IconButton(
-            tooltip: 'Learner profile',
-            onPressed: _openLearnerProfile,
-            icon: CircleAvatar(
-              radius: 18,
-              backgroundColor: const Color(0xFFE8ECFF),
-              child: Text(
-                _profileInitials,
-                style: const TextStyle(
-                  color: _primaryBlue,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+        backgroundColor: _background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          elevation: 0,
+          leadingWidth: 62,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 14),
+            child: IconButton(
+              tooltip: 'Learner profile',
+              onPressed: _openLearnerProfile,
+              icon: CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFE8ECFF),
+                child: Text(
+                  _profileInitials,
+                  style: const TextStyle(
+                    color: _primaryBlue,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        title: const Text(
-          'NEXTERN',
-          style: TextStyle(
-            color: _primaryBlue,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.7,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF3C4554),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
-        children: [
-          Text(
-            'Hi, $_displayName!',
-            style: const TextStyle(
-              color: _textPrimary,
-              fontSize: 27,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Welcome back to your dashboard. You are making steady progress.',
+          title: const Text(
+            'NEXTERN',
             style: TextStyle(
-              color: _textSecondary,
-              fontSize: 14,
-              height: 1.45,
+              color: _primaryBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.7,
             ),
           ),
-          const SizedBox(height: 24),
+          centerTitle: true,
+          actions: [
+            const NotificationBadge(iconColor: Color(0xFF3C4554)),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+          children: [
+            Text(
+              'Hi, $_displayName!',
+              style: const TextStyle(
+                color: _textPrimary,
+                fontSize: 27,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Welcome back to your dashboard. You are making steady progress.',
+              style: TextStyle(
+                color: _textSecondary,
+                fontSize: 14,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 24),
 
-          _DashboardCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Course Completion',
-                      style: TextStyle(
-                        color: _textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+            // Course Completion Carousel
+            SizedBox(
+              height: 495,
+              child: PageView.builder(
+                controller: _carouselController,
+                itemCount: _activePrograms.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentCarouselIndex = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final program = _activePrograms[index];
+                  return _ActiveProgramWidget(
+                    title: program['title'] as String,
+                    completion: program['completion'] as double,
+                    date: program['date'] as String,
+                    currentModule: program['currentModule'] as String,
+                    status: program['status'] as String,
+                  );
+                },
+              ),
+            ),
+            if (_activePrograms.length > 1) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _activePrograms.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: _currentCarouselIndex == index ? 24 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: _currentCarouselIndex == index
+                          ? _primaryBlue
+                          : const Color(0xFFD9DEE8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 26),
+
+            // Announcement
+            const Text(
+              'Announcement',
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListenableBuilder(
+              listenable: AnnouncementService.instance,
+              builder: (context, child) {
+                final announcement = AnnouncementService.instance.announcement;
+                return _AnnouncementCard(
+                  title: announcement['title'] ?? '',
+                  body: announcement['body'] ?? '',
+                  date: announcement['date'] ?? '',
+                  link: announcement['link'] ?? '',
+                  image: announcement['image'] ?? '',
+                );
+              },
+            ),
+            const SizedBox(height: 26),
+
+            // Pending Assignments
+            const Text(
+              'Pending Assignments',
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Column(
+              children: _pendingAssignments.map((assignment) {
+                return _PendingAssignmentTile(
+                  name: assignment['name']!,
+                  dueDate: assignment['dueDate']!,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ProgramLearningScreen(),
                       ),
-                    ),
-                    Icon(
-                      Icons.trending_up_rounded,
-                      color: _primaryBlue,
-                      size: 21,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-                Center(
-                  child: SizedBox(
-                    width: 132,
-                    height: 132,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 132,
-                          height: 132,
-                          child: CircularProgressIndicator(
-                            value: 0.75,
-                            strokeWidth: 9,
-                            backgroundColor: Color(0xFFE4E9FF),
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(_primaryBlue),
-                            strokeCap: StrokeCap.round,
-                          ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              '75%',
-                              style: TextStyle(
-                                color: _textPrimary,
-                                fontSize: 31,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: _textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                const Text(
-                  'You are on track to complete the UX Engineering track by Nov 15.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _textSecondary,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+                    );
+                  },
+                );
+              }).toList(),
             ),
-          ),
-          const SizedBox(height: 18),
+            const SizedBox(height: 26),
 
-          _DashboardCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Current Module',
+                  'Saved Favorite Programs',
                   style: TextStyle(
                     color: _textPrimary,
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 18),
-                const _ModuleRow(
-                  title: 'Wireframing Fundamentals',
-                  status: 'IN PROGRESS',
-                  active: true,
-                ),
-                const Divider(
-                  height: 30,
-                  color: Color(0xFFE7EAF0),
-                ),
-                const _ModuleRow(
-                  title: 'Prototyping in Figma',
-                  status: 'LOCKED',
-                  active: false,
-                ),
-                const SizedBox(height: 22),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryBlue,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                TextButton(
+                  onPressed: () async {
+                    await _openProgramListing();
+                    if (mounted) setState(() {});
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
                     ),
+                    minimumSize: const Size(0, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: const Text(
-                    'Resume Learning',
+                    'VIEW ALL',
                     style: TextStyle(
+                      color: _primaryBlue,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 26),
+            ListenableBuilder(
+              listenable: ProgramStore.instance,
+              builder: (context, child) {
+                final store = ProgramStore.instance;
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Saved Favorite Programs',
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await _openProgramListing();
-                  if (mounted) setState(() {});
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
-                  ),
-                  minimumSize: const Size(0, 30),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'VIEW ALL',
-                  style: TextStyle(
-                    color: _primaryBlue,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          ...(() {
-            final savedPrograms = ProgramData.samplePrograms
-                .where((program) => program.isSaved)
-                .toList();
+                if (store.isLoading) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-            if (savedPrograms.isEmpty) {
-              return [
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
-                    child: Text(
-                      'No saved programs yet.\nBrowse and save programs to see them here!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: _textSecondary,
-                        fontSize: 13,
-                        height: 1.5,
+                if (store.errorMessage != null) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(Icons.error_outline, color: _textSecondary, size: 32),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Could not load saved programs.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: _textSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () => store.retry(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-              ];
-            }
+                  );
+                }
 
-            return savedPrograms.map((program) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: _ProgramCard(
-                  category: program.category,
-                  arrangement: program.arrangement,
-                  title: program.title,
-                  description: program.description,
-                  icon: program.icon,
-                  isSaved: program.isSaved,
-                  onTap: () => _openProgramDetails(program),
-                ),
-              );
-            }).toList();
-          })(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectNavigationItem,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _primaryBlue,
-        unselectedItemColor: const Color(0xFF8993A2),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
+                final savedPrograms = store.programs
+                    .where((program) => store.savedProgramIds.contains(program.id))
+                    .toList();
+
+                if (savedPrograms.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(
+                      child: Text(
+                        'No saved programs yet.\nBrowse and save programs to see them here!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _textSecondary,
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: savedPrograms.map((program) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _ProgramCard(
+                        program: program,
+                        icon: _iconForCategory(program.category),
+                        isSaved: true,
+                        onTap: () => _openProgramDetails(program),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
         ),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _selectNavigationItem,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: _primaryBlue,
+          unselectedItemColor: const Color(0xFF8993A2),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Browse',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+          unselectedLabelStyle: const TextStyle(fontSize: 11),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search_rounded),
+              label: 'Browse',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment_outlined),
+              activeIcon: Icon(Icons.assignment_rounded),
+              label: 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _DashboardCard extends StatelessWidget {
-  const _DashboardCard({
-    required this.child,
-  });
+  const _DashboardCard({required this.child});
 
   final Widget child;
 
@@ -652,9 +683,7 @@ class _DashboardCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: const Color(0xFFE5E9F0),
-        ),
+        border: Border.all(color: const Color(0xFFE5E9F0)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -694,14 +723,9 @@ class _ModuleRow extends StatelessWidget {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: active
-                ? const Color(0xFFE4E9FF)
-                : const Color(0xFFF0F2F5),
+            color: active ? const Color(0xFFE4E9FF) : const Color(0xFFF0F2F5),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -721,19 +745,13 @@ class _ModuleRow extends StatelessWidget {
 
 class _ProgramCard extends StatelessWidget {
   const _ProgramCard({
-    required this.category,
-    required this.arrangement,
-    required this.title,
-    required this.description,
+    required this.program,
     required this.icon,
     required this.isSaved,
     required this.onTap,
   });
 
-  final String category;
-  final String arrangement;
-  final String title;
-  final String description;
+  final Program program;
   final IconData icon;
   final bool isSaved;
   final VoidCallback onTap;
@@ -750,84 +768,75 @@ class _ProgramCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: const Color(0xFFE4E8EF),
-            ),
+            border: Border.all(color: const Color(0xFFE4E8EF)),
           ),
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 135,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFFE6EBFF),
-                  Color(0xFFF4F6FC),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Icon(
-                    icon,
-                    size: 54,
-                    color: _primaryBlue,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 135,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFE6EBFF), Color(0xFFF4F6FC)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: CircleAvatar(
-                    radius: 17,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      isSaved ? Icons.bookmark : Icons.bookmark_border,
-                      color: isSaved ? _primaryBlue : const Color(0xFF7C8798),
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 15, 16, 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                child: Stack(
                   children: [
-                    _Tag(text: category),
-                    const SizedBox(width: 8),
-                    _Tag(text: arrangement),
+                    Center(child: Icon(icon, size: 54, color: _primaryBlue)),
+                    Positioned(
+                      right: 12,
+                      top: 12,
+                      child: CircleAvatar(
+                        radius: 17,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          isSaved ? Icons.bookmark : Icons.bookmark_border,
+                          color: isSaved
+                              ? _primaryBlue
+                              : const Color(0xFF7C8798),
+                          size: 18,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 11),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 15, 16, 17),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _Tag(text: program.category),
+                        const SizedBox(width: 8),
+                        _Tag(text: program.arrangement),
+                      ],
+                    ),
+                    const SizedBox(height: 11),
+                    Text(
+                      program.title,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      program.shortDescription,
+                      style: const TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 7),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: _textSecondary,
-                    fontSize: 13,
-                    height: 1.45,
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
             ],
           ),
         ),
@@ -837,19 +846,14 @@ class _ProgramCard extends StatelessWidget {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag({
-    required this.text,
-  });
+  const _Tag({required this.text});
 
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFF0F3F8),
         borderRadius: BorderRadius.circular(5),
@@ -861,6 +865,299 @@ class _Tag extends StatelessWidget {
           fontSize: 9,
           fontWeight: FontWeight.w700,
         ),
+      ),
+    );
+  }
+}
+
+class _ActiveProgramWidget extends StatelessWidget {
+  const _ActiveProgramWidget({
+    required this.title,
+    required this.completion,
+    required this.date,
+    required this.currentModule,
+    required this.status,
+  });
+
+  final String title;
+  final double completion;
+  final String date;
+  final String currentModule;
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const ProgramLearningScreen(),
+          ),
+        );
+      },
+      child: _DashboardCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: _textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(
+                  Icons.trending_up_rounded,
+                  color: _primaryBlue,
+                  size: 21,
+                ),
+              ],
+            ),
+            const SizedBox(height: 25),
+            Center(
+              child: SizedBox(
+                width: 132,
+                height: 132,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 132,
+                      height: 132,
+                      child: CircularProgressIndicator(
+                        value: completion,
+                        strokeWidth: 9,
+                        backgroundColor: const Color(0xFFE4E9FF),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          _primaryBlue,
+                        ),
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${(completion * 100).toInt()}%',
+                          style: const TextStyle(
+                            color: _textPrimary,
+                            fontSize: 31,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const Text(
+                          'Completed',
+                          style: TextStyle(color: _textSecondary, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              'You are on track to complete this program by $date.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: _textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Divider(height: 1, color: Color(0xFFE7EAF0)),
+            const SizedBox(height: 22),
+            const Text(
+              'Current Module',
+              style: TextStyle(
+                color: _textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ModuleRow(title: currentModule, status: status, active: true),
+            const SizedBox(height: 22),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProgramLearningScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryBlue,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Resume Learning',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnnouncementCard extends StatelessWidget {
+  const _AnnouncementCard({
+    required this.title,
+    required this.body,
+    required this.date,
+    this.link = '',
+    this.image = '',
+  });
+
+  final String title;
+  final String body;
+  final String date;
+  final String link;
+  final String image;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.campaign_outlined, color: _primaryBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: _textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                date,
+                style: const TextStyle(color: _textSecondary, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            body,
+            style: const TextStyle(
+              color: _textSecondary,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          if (link.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.link, color: _primaryBlue, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  link,
+                  style: const TextStyle(
+                    color: _primaryBlue,
+                    fontSize: 13,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (image.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE4E9FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Center(
+                child: Icon(Icons.image, color: _primaryBlue, size: 32),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingAssignmentTile extends StatelessWidget {
+  const _PendingAssignmentTile({
+    required this.name,
+    required this.dueDate,
+    required this.onTap,
+  });
+
+  final String name;
+  final String dueDate;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E9F0)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF7E6),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.assignment_late_outlined,
+            color: Color(0xFFFF9800),
+          ),
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(
+            color: _textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.access_time, size: 14, color: _textSecondary),
+              const SizedBox(width: 4),
+              Text(
+                dueDate,
+                style: const TextStyle(color: _textSecondary, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: _textSecondary),
       ),
     );
   }

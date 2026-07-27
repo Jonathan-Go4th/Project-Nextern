@@ -7,7 +7,10 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/browse_programs_screen.dart';
 import 'screens/tasks_screen.dart';
-import 'screens/admin_monitoring_screen.dart';
+import 'screens/admin_program_manager_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/admin_user_management_screen.dart';
+import 'screens/admin_profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,7 +44,10 @@ class MyApp extends StatelessWidget {
         '/admin-home': (context) => const AdminHomeScreen(),
         '/browse': (context) => const BrowseProgramsScreen(),
         '/tasks': (context) => const TasksScreen(),
-        '/admin-monitoring': (context) => const AdminMonitoringScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/admin-program-manager': (context) => const AdminProgramManagerScreen(),
+        '/admin-user-management': (context) => const AdminUserManagementScreen(),
+        '/admin-profile': (context) => const AdminProfileScreen(),
       },
     );
   }
