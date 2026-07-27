@@ -4,11 +4,11 @@
 
 Nextern is a mobile application designed to provide learners with easy access to learning programs and internships while giving administrators tools to manage programs, monitor learner progress, review assignments and enrolment requests, publish announcements, and respond to feedback through a simple and user-friendly interface.
 
-📄 For full project details, see our Week 3 documentation: [Nextern_Week_3_Development_Documentation.pdf](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern_Week_3_Development_Documentation.pdf)
+📄 For week 3 deliverables, see our [Nextern_Week_3_Development_Documentation.pdf](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern_Week_3_Development_Documentation.pdf)
 
 🎥 Watch the [Demo Video](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
 
-🎨 View our [Figma Wireframe (Updated)](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
+🎨 For full project details, View our Updated [Figma Wireframe](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
 
 🗃️ See our project archive [App Proposal Document](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20App%20Proposal.pdf);  [Week 2 Deliverables](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20Deliverables%20Week%202.pdf);  [App Demo Video](https://drive.google.com/file/d/1D80R41BOParI8f31nbzXNWi7wXw-dVWa/view);  [Figma Wireframe (Old)](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=0-1&p=f&t=6eFbiWd7greXp48c-0).
 
