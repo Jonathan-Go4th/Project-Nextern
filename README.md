@@ -4,7 +4,7 @@
 
 Nextern is a mobile application designed to provide learners with easy access to learning programs and internships while giving administrators tools to manage programs, monitor learner progress, review assignments and enrolment requests, publish announcements, and respond to feedback through a simple and user-friendly interface.
 
-📄 For full project details, see our Week 3 documentation: `Nextern_Week_3_Development_Documentation.pdf` 
+📄 For full project details, see our Week 3 documentation: [Nextern_Week_3_Development_Documentation.pdf](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern_Week_3_Development_Documentation.pdf)
 
 🎥 Watch the [Demo Video](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
 
