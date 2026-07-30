@@ -21,15 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const List<String> _programListingRoutes = <String>[
-    '/program-listing',
-    '/programs',
-    '/browse',
-    '/programListing',
-    '/program-listing-screen',
-  ];
-
-  int _selectedIndex = 0;
   String _displayName = 'Alex';
   String _email = '';
   final PageController _carouselController = PageController();
@@ -107,94 +98,12 @@ class _HomeScreenState extends State<HomeScreen> {
         .toUpperCase();
   }
 
-  Future<bool> _pushFirstRegisteredRoute(
-    List<String> routeNames, {
-    required String screenLabel,
-  }) async {
-    for (final String routeName in routeNames) {
-      try {
-        final Future<dynamic> navigation = Navigator.of(
-          context,
-        ).pushNamed(routeName);
-        await navigation;
-        return true;
-      } on FlutterError {
-        // Try the next common route name.
-      }
-    }
-
-    if (!mounted) {
-      return false;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$screenLabel is available, but its route is not registered '
-          'under any supported route name.',
-        ),
-      ),
-    );
-    return false;
-  }
-
-  Future<void> _openProgramListing() async {
-    await _pushFirstRegisteredRoute(
-      _programListingRoutes,
-      screenLabel: 'Program Listing',
-    );
-  }
-
-  Future<void> _openProgramDetails(Program program) async {
-    await Navigator.of(context).push(
+  void _openProgramDetails(Program program) {
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ProgramDetailsScreen(program: program),
       ),
     );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _selectNavigationItem(int index) async {
-    switch (index) {
-      case 0:
-        setState(() {
-          _selectedIndex = 0;
-        });
-        return;
-      case 1:
-        setState(() {
-          _selectedIndex = 1;
-        });
-        await _openProgramListing();
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
-        return;
-      case 2:
-        setState(() {
-          _selectedIndex = 2;
-        });
-        await Navigator.of(context).pushNamed('/tasks');
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
-        return;
-      case 3:
-        setState(() {
-          _selectedIndex = 3;
-        });
-        await Navigator.of(context).pushNamed('/profile');
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
-        return;
-    }
   }
 
   Future<void> _openLearnerProfile() async {
@@ -360,9 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope<void>(
-      canPop: false,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: _background,
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -535,10 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    await _openProgramListing();
-                    if (mounted) setState(() {});
-                  },
+                  onPressed: () {},
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
@@ -632,41 +536,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _selectNavigationItem,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: _primaryBlue,
-          unselectedItemColor: const Color(0xFF8993A2),
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 11,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search_rounded),
-              label: 'Browse',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_outlined),
-              activeIcon: Icon(Icons.assignment_rounded),
-              label: 'Tasks',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

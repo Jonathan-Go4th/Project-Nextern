@@ -19,7 +19,6 @@ class BrowseProgramsScreen extends StatefulWidget {
 }
 
 class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
-  static const int _selectedIndex = 1;
   String _displayName = 'Alex';
 
   String _searchQuery = '';
@@ -197,17 +196,6 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
         );
       },
     );
-  }
-
-  Future<void> _selectNavigationItem(int index) async {
-    if (index == _selectedIndex) return;
-    if (index == 0) {
-      Navigator.of(context).popUntil((route) => route.settings.name == '/home');
-    } else if (index == 2) {
-      Navigator.of(context).pushReplacementNamed('/tasks');
-    } else if (index == 3) {
-      Navigator.of(context).pushReplacementNamed('/profile');
-    }
   }
 
   Future<void> _openProgramDetails(Program program) async {
@@ -497,40 +485,6 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
             ],
           );
         },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectNavigationItem,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _primaryBlue,
-        unselectedItemColor: const Color(0xFF8993A2),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Browse',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
