@@ -11,6 +11,11 @@ const Color _textPrimary = Color(0xFF202532);
 const Color _textSecondary = Color(0xFF788394);
 const Color _borderColor = Color(0xFFDDE3ED);
 
+// A stricter email pattern: requires at least one character after the
+// final dot (blocks things like "you@university." while still allowing
+// "you@university.edu").
+final RegExp _emailRegex = RegExp(r'^[\w.\-]+@([\w\-]+\.)+[\w\-]{2,}$');
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -219,10 +224,10 @@ class _LoginScreenState extends State<LoginScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(22, 24, 22, 30),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 54,
-                ),
-                child: Center(
+  constraints: BoxConstraints(
+    minHeight: (constraints.maxHeight - 54).clamp(0.0, double.infinity),
+  ),
+  child: Center(
                   child: SizedBox(
                     width: 420,
                     child: Form(
@@ -291,8 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return 'Please enter your email address';
                               }
 
-                              if (!email.contains('@') ||
-                                  !email.contains('.')) {
+                              if (!_emailRegex.hasMatch(email)) {
                                 return 'Please enter a valid email address';
                               }
 
@@ -342,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             validator: (String? value) {
-                              final String password = value ?? '';
+                              final String password = (value ?? '').trim();
 
                               if (password.isEmpty) {
                                 return 'Please enter your password';
