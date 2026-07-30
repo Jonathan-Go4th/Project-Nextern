@@ -128,7 +128,7 @@ class _AdminProgramSubmissionsScreenState extends State<AdminProgramSubmissionsS
   @override
   Widget build(BuildContext context) {
     final submissions = _getSubmissions();
-    final requests = _getEnrollmentRequests();
+
 
     return Scaffold(
       backgroundColor: _background,

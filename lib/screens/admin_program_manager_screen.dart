@@ -3,7 +3,7 @@ import '../widgets/notification_badge.dart';
 import 'app_session.dart';
 import 'admin_program_maker_screen.dart';
 import 'admin_program_submissions_screen.dart';
-import 'admin_user_management_screen.dart';
+
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _background = Color(0xFFF8FAFD);
@@ -19,7 +19,8 @@ class AdminProgramManagerScreen extends StatefulWidget {
 }
 
 class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
-  int _selectedIndex = 1;
+  final int _selectedIndex = 1;
+
   String _displayName = 'Administrator';
   String _email = '';
 
@@ -173,7 +174,19 @@ class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
               ),
             ),
           ),
-          title: const Text('PROGRAM MANAGER', style: TextStyle(color: _primaryBlue, fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 0.7)),
+          title: const Text(
+            'PROGRAM MANAGER',
+            style: TextStyle(
+              color: _primaryBlue,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.7,
+            ),
+          ),
+
+
+
+
           centerTitle: true,
           actions: const [
             NotificationBadge(iconColor: Color(0xFF414958)),

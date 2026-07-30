@@ -90,6 +90,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
+
+
+
+
         centerTitle: false,
         actions: [
           const NotificationBadge(iconColor: Color(0xFF3C4554)),

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/services/program_service.dart';
+import 'package:Nextern/services/program_service.dart';
+
 
 const _validJson = '''
 [

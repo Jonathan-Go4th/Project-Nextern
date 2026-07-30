@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'admin_home_screen.dart';
 import 'app_session.dart';
-import 'home_screen.dart';
+
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _pageBackground = Color(0xFFF8FAFD);
@@ -25,49 +24,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _hidePassword = true;
-  bool _checkingSession = true;
+  bool _checkingSession = false;
   bool _isLoggingIn = false;
 
-  @override
-  void initState() {
-    super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _restoreSession();
-    });
-  }
 
-  Future<void> _restoreSession() async {
-    try {
-      final SessionRole? role = await AppSession.getRole();
-
-      if (!mounted) {
-        return;
-      }
-
-      if (role != null) {
-        final Widget destination = role == SessionRole.admin
-            ? const AdminHomeScreen()
-            : const HomeScreen();
-
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => destination,
-          ),
-          (Route<dynamic> route) => false,
-        );
-        return;
-      }
-    } catch (_) {
-      // Continue to the login form if local storage is unavailable.
-    }
-
-    if (mounted) {
-      setState(() {
-        _checkingSession = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -100,39 +61,40 @@ class _LoginScreenState extends State<LoginScreen> {
         vertical: 15,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
           color: _borderColor,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
           color: _borderColor,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
           color: _primaryBlue,
           width: 1.4,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
-          color: Colors.red,
+          color: Colors.redAccent,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
-          color: Colors.red,
+          color: Colors.redAccent,
           width: 1.4,
         ),
       ),
     );
   }
+
 
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
@@ -231,27 +193,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            'NEXTERN',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _primaryBlue,
-                              fontSize: 23,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.7,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/nextern_logo.png',
+                                height: 24,
+                                width: 24,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(width: 0.5),
+                              const Text(
+                                'NEXTERN',
+                                style: TextStyle(
+                                  color: _primaryBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 42),
+
+
+
+
+
+
+
+
+                          const SizedBox(height: 36),
                           const Text(
                             'Welcome back to NEXTERN',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: _textPrimary,
-                              fontSize: 21,
+                              fontSize: 24,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          const SizedBox(height: 9),
+                          const SizedBox(height: 8),
                           const Text(
                             'Enter your credentials to access your dashboard.',
                             textAlign: TextAlign.center,
@@ -384,9 +366,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               backgroundColor: _primaryBlue,
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              minimumSize: const Size.fromHeight(49),
+                              minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             child: _isLoggingIn
@@ -401,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : const Text(
                                     'Login',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -424,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'Or continue with',
                                   style: TextStyle(
                                     color: _textSecondary,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
@@ -448,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: _borderColor,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             child: Row(
@@ -464,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'Google',
                                   style: TextStyle(
                                     color: _textPrimary,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -481,7 +463,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'New to Nextern?',
                                 style: TextStyle(
                                   color: _textSecondary,
-                                  fontSize: 12,
+                                  fontSize: 13,
                                 ),
                               ),
                               TextButton(
@@ -501,7 +483,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'Create Account',
                                   style: TextStyle(
                                     color: _primaryBlue,
-                                    fontSize: 12,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -522,11 +504,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Login as Admin',
                               style: TextStyle(
                                 color: _primaryBlue,
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
+
                         ],
                       ),
                     ),

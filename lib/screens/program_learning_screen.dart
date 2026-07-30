@@ -108,6 +108,10 @@ class _ProgramLearningScreenState extends State<ProgramLearningScreen> {
             letterSpacing: 0.7,
           ),
         ),
+
+
+
+
         actions: const [
           NotificationBadge(iconColor: _textSecondary),
           SizedBox(width: 8),
@@ -218,7 +222,8 @@ class _ProgramLearningScreenState extends State<ProgramLearningScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ..._weeks.map((week) => _buildWeekTile(week)).toList(),
+                ..._weeks.map((week) => _buildWeekTile(week)),
+
               ],
             ),
           ),
@@ -319,7 +324,8 @@ class _ProgramLearningScreenState extends State<ProgramLearningScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...contents.map((item) => _buildContentItem(item)).toList(),
+                  ...contents.map((item) => _buildContentItem(item)),
+
                   
                   const SizedBox(height: 24),
                   
@@ -499,42 +505,45 @@ class _ProgramLearningScreenState extends State<ProgramLearningScreen> {
             Column(
               children: [
                 if (uploadedFiles.isNotEmpty)
-                  ...uploadedFiles.map((file) => Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFC5CEE0)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.insert_drive_file, color: _primaryBlue, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            file.toString(),
-                            style: const TextStyle(
-                              color: _textPrimary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                  for (final file in uploadedFiles)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFC5CEE0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.insert_drive_file, color: _primaryBlue, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              file.toString(),
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Color(0xFFE53935), size: 20),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            setState(() {
-                              uploadedFiles.remove(file);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  )).toList()
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Color(0xFFE53935), size: 20),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              setState(() {
+                                uploadedFiles.remove(file);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    )
                 else
+
+
                   InkWell(
                     onTap: () async {
                       // Mock showing a snackbar then adding file

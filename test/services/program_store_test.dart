@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/models/program.dart';
-import '../../lib/services/program_service.dart';
-import '../../lib/services/program_store.dart';
-import '../../lib/services/saved_program_service.dart';
+import 'package:Nextern/models/program.dart';
+import 'package:Nextern/services/program_service.dart';
+import 'package:Nextern/services/program_store.dart';
+import 'package:Nextern/services/saved_program_service.dart';
+
 
 // ---------------------------------------------------------------------------
 // Fakes

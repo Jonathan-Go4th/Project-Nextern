@@ -29,7 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
     '/program-listing-screen',
   ];
 
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
+
   String _displayName = 'Alex';
   String _email = '';
   final PageController _carouselController = PageController();
@@ -155,47 +156,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _selectNavigationItem(int index) async {
+    if (index == _selectedIndex) return;
     switch (index) {
       case 0:
-        setState(() {
-          _selectedIndex = 0;
-        });
         return;
       case 1:
-        setState(() {
-          _selectedIndex = 1;
-        });
-        await _openProgramListing();
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
+        Navigator.of(context).pushReplacementNamed('/browse');
         return;
       case 2:
-        setState(() {
-          _selectedIndex = 2;
-        });
-        await Navigator.of(context).pushNamed('/tasks');
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
+        Navigator.of(context).pushReplacementNamed('/tasks');
         return;
       case 3:
-        setState(() {
-          _selectedIndex = 3;
-        });
-        await Navigator.of(context).pushNamed('/profile');
-        if (mounted) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-        }
+        Navigator.of(context).pushReplacementNamed('/profile');
         return;
     }
   }
+
 
   Future<void> _openLearnerProfile() async {
     final bool? shouldLogOut = await showModalBottomSheet<bool>(
@@ -388,15 +364,31 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          title: const Text(
-            'NEXTERN',
-            style: TextStyle(
-              color: _primaryBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.7,
-            ),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/nextern_logo.png',
+                height: 24,
+                width: 24,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 0.5),
+              const Text(
+                'NEXTERN',
+                style: TextStyle(
+                  color: _primaryBlue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ],
           ),
+
+
+
+
           centerTitle: true,
           actions: [
             const NotificationBadge(iconColor: Color(0xFF3C4554)),

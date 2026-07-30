@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_session.dart';
-import 'home_screen.dart';
+
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _background = Color(0xFFF8FAFD);
@@ -51,22 +51,36 @@ class _SignupScreenState extends State<SignupScreen> {
         vertical: 15,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFDDE3ED)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFDDE3ED)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
           color: _primaryBlue,
           width: 1.4,
         ),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+        ),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 1.4,
+        ),
+      ),
     );
   }
+
 
   Future<void> _signUp() async {
     FocusScope.of(context).unfocus();
@@ -145,28 +159,44 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                           icon: const Icon(Icons.arrow_back),
                         ),
-                        const Expanded(
-                          child: Text(
-                            'NEXTERN',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _primaryBlue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
-                            ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/nextern_logo.png',
+                                height: 24,
+                                width: 24,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(width: 0.5),
+                              const Text(
+                                'NEXTERN',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _primaryBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+
+
+
+
                         const SizedBox(width: 48),
                       ],
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 36),
                     const Text(
                       'Create Account',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _textPrimary,
-                        fontSize: 25,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -176,6 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _textSecondary,
+                        fontSize: 13,
                         height: 1.45,
                       ),
                     ),
@@ -311,7 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         elevation: 0,
                         minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: _isSigningUp
@@ -326,6 +357,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           : const Text(
                               'Sign Up as Learner  →',
                               style: TextStyle(
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -337,9 +369,14 @@ class _SignupScreenState extends State<SignupScreen> {
                       },
                       child: const Text(
                         'Already have an account? Log in',
-                        style: TextStyle(color: _primaryBlue),
+                        style: TextStyle(
+                          color: _primaryBlue,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
+
                   ],
                 ),
               ),

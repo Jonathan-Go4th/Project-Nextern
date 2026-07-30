@@ -65,15 +65,31 @@ class _ProgramDetailsScreenState extends State<ProgramDetailsScreen> {
           },
         ),
 
-        title: const Text(
-          'NEXTERN',
-          style: TextStyle(
-            color: _primaryBlue,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.7,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/nextern_logo.png',
+              height: 24,
+              width: 24,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 0.5),
+            const Text(
+              'NEXTERN',
+              style: TextStyle(
+                color: _primaryBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.7,
+              ),
+            ),
+          ],
         ),
+
+
+
+
 
         actions: [
           IconButton(

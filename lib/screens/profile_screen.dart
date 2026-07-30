@@ -21,7 +21,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 3; // Profile tab index
+  final int _selectedIndex = 3; // Profile tab index
+
   String _displayName = 'Alex';
   String _email = 'alex@example.com';
 
@@ -83,6 +84,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
+
+
+
+
         centerTitle: false,
         actions: [
           const NotificationBadge(iconColor: Color(0xFF3C4554)),

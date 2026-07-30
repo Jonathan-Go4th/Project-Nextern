@@ -15,7 +15,8 @@ class AdminUserManagementScreen extends StatefulWidget {
 }
 
 class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
-  int _selectedIndex = 2;
+  final int _selectedIndex = 2;
+
   final TextEditingController _searchController = TextEditingController();
   
   final List<Map<String, dynamic>> _allUsers = [
@@ -186,7 +187,18 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
       backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('User Management', style: TextStyle(color: _textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'User Management',
+          style: TextStyle(
+            color: _textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+
+
+
         elevation: 0,
       ),
       body: Column(

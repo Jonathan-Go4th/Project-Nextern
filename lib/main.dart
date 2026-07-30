@@ -12,8 +12,30 @@ import 'screens/profile_screen.dart';
 import 'screens/admin_user_management_screen.dart';
 import 'screens/admin_profile_screen.dart';
 
+
 void main() {
   runApp(const MyApp());
+}
+
+class SmoothFadePageTransitionsBuilder extends PageTransitionsBuilder {
+  const SmoothFadePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInOut,
+      ),
+      child: child,
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -34,10 +56,23 @@ class MyApp extends StatelessWidget {
           primary: primaryBlue,
           surface: Colors.white,
         ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: SmoothFadePageTransitionsBuilder(),
+            TargetPlatform.iOS: SmoothFadePageTransitionsBuilder(),
+            TargetPlatform.windows: SmoothFadePageTransitionsBuilder(),
+            TargetPlatform.macOS: SmoothFadePageTransitionsBuilder(),
+            TargetPlatform.linux: SmoothFadePageTransitionsBuilder(),
+          },
+        ),
       ),
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginScreen(),
+
+
+
+
         '/signup': (context) => const SignupScreen(),
         '/home': (context) => const HomeScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),

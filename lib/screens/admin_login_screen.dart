@@ -91,22 +91,36 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         vertical: 15,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFDDE3ED)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFDDE3ED)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
           color: _primaryBlue,
           width: 1.4,
         ),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+        ),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 1.4,
+        ),
+      ),
     );
   }
+
 
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
@@ -188,41 +202,62 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           },
                           icon: const Icon(Icons.arrow_back),
                         ),
-                        const Expanded(
-                          child: Text(
-                            'NEXTERN',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _primaryBlue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
-                            ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/nextern_logo.png',
+                                height: 24,
+                                width: 24,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(width: 0.5),
+                              const Text(
+                                'NEXTERN',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _primaryBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+
+
+
+
+
+
+
                         const SizedBox(width: 48),
                       ],
                     ),
-                    const SizedBox(height: 55),
+                    const SizedBox(height: 36),
                     const Text(
                       'Admin Login',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _textPrimary,
-                        fontSize: 25,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 9),
+                    const SizedBox(height: 8),
                     const Text(
                       'Enter your credentials to manage\nyour organization.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _textSecondary,
+                        fontSize: 13,
                         height: 1.45,
                       ),
                     ),
-                    const SizedBox(height: 34),
+                    const SizedBox(height: 32),
                     const _AdminFieldLabel('Work Email'),
                     const SizedBox(height: 7),
                     TextFormField(
@@ -319,7 +354,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         elevation: 0,
                         minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: _isLoggingIn
@@ -334,6 +369,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           : const Text(
                               'Login as Admin',
                               style: TextStyle(
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -346,7 +382,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             'Or continue with',
-                            style: TextStyle(color: Color(0xFF7C8798), fontSize: 11),
+                            style: TextStyle(color: Color(0xFF7C8798), fontSize: 12),
                           ),
                         ),
                         Expanded(child: Divider(color: Color(0xFFE5E9F0))),
@@ -367,7 +403,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         minimumSize: const Size.fromHeight(48),
                         side: const BorderSide(color: Color(0xFFE5E9F0)),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Row(
@@ -383,7 +419,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             'Google',
                             style: TextStyle(
                               color: Color(0xFF1B2333),
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -399,10 +435,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         'Login as Learner',
                         style: TextStyle(
                           color: _primaryBlue,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+
                   ],
                 ),
               ),

@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/models/program.dart';
+import 'package:Nextern/models/program.dart';
+
 
 Map<String, dynamic> _full() => {
       'id': 'p1',

@@ -202,13 +202,14 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
   Future<void> _selectNavigationItem(int index) async {
     if (index == _selectedIndex) return;
     if (index == 0) {
-      Navigator.of(context).popUntil((route) => route.settings.name == '/home');
+      Navigator.of(context).pushReplacementNamed('/home');
     } else if (index == 2) {
       Navigator.of(context).pushReplacementNamed('/tasks');
     } else if (index == 3) {
       Navigator.of(context).pushReplacementNamed('/profile');
     }
   }
+
 
   Future<void> _openProgramDetails(Program program) async {
     await Navigator.of(context).push(
@@ -244,15 +245,31 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
             ),
           ),
         ),
-        title: const Text(
-          'NEXTERN',
-          style: TextStyle(
-            color: _primaryBlue,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.7,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/nextern_logo.png',
+              height: 24,
+              width: 24,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 0.5),
+            const Text(
+              'NEXTERN',
+              style: TextStyle(
+                color: _primaryBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.7,
+              ),
+            ),
+          ],
         ),
+
+
+
+
         centerTitle: true,
         actions: const [
           NotificationBadge(iconColor: Color(0xFF3C4554)),
