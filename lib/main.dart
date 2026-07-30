@@ -82,11 +82,11 @@ class _LearnerShellState extends State<LearnerShell> {
       child: Scaffold(
         body: IndexedStack(
           index: _selectedIndex,
-          children: const [
-            HomeScreen(),
-            BrowseProgramsScreen(),
-            TasksScreen(),
-            ProfileScreen(),
+          children: [
+            HomeScreen(onBrowseTap: () => setState(() => _selectedIndex = 1)),
+            const BrowseProgramsScreen(),
+            const TasksScreen(),
+            const ProfileScreen(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(

@@ -14,7 +14,9 @@ const Color _textPrimary = Color(0xFF202533);
 const Color _textSecondary = Color(0xFF7C8798);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onBrowseTap});
+
+  final VoidCallback? onBrowseTap;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -442,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => widget.onBrowseTap?.call(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,

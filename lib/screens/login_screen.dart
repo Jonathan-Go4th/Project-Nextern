@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'admin_home_screen.dart';
 import 'app_session.dart';
-import 'home_screen.dart';
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _pageBackground = Color(0xFFF8FAFD);
@@ -51,16 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (role != null) {
-        final Widget destination = role == SessionRole.admin
-            ? const AdminHomeScreen()
-            : const HomeScreen();
-
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => destination,
-          ),
-          (Route<dynamic> route) => false,
-        );
+        final String destination = role == SessionRole.admin ? '/admin-home' : '/home';
+        Navigator.of(context).pushNamedAndRemoveUntil(destination, (_) => false);
         return;
       }
     } catch (_) {
