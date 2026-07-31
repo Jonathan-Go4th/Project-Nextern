@@ -5,6 +5,7 @@ import 'app_session.dart';
 import '../models/program.dart';
 import '../services/program_store.dart';
 import '../widgets/notification_badge.dart';
+import '../widgets/logout_confirmation_dialog.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
 const Color _background = Color(0xFFF7F9FC);
@@ -19,8 +20,8 @@ class BrowseProgramsScreen extends StatefulWidget {
 }
 
 class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
-  static const int _selectedIndex = 1;
   String _displayName = 'Alex';
+  String _email = '';
 
   String _searchQuery = '';
   String _activeFilter = 'All Categories';
@@ -71,7 +72,10 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
     try {
       final SessionProfile? profile = await AppSession.getProfile();
       if (mounted && profile != null) {
-        setState(() => _displayName = profile.displayName);
+        setState(() {
+          _displayName = profile.displayName;
+          _email = profile.email;
+        });
       }
     } catch (_) {}
   }
@@ -199,23 +203,155 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
     );
   }
 
-  Future<void> _selectNavigationItem(int index) async {
-    if (index == _selectedIndex) return;
-    if (index == 0) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if (index == 2) {
-      Navigator.of(context).pushReplacementNamed('/tasks');
-    } else if (index == 3) {
-      Navigator.of(context).pushReplacementNamed('/profile');
-    }
-  }
-
-
   Future<void> _openProgramDetails(Program program) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ProgramDetailsScreen(program: program),
       ),
+    );
+  }
+
+  Future<void> _openLearnerProfile() async {
+    final bool? shouldLogOut = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        final double bottomInset = MediaQuery.of(
+          sheetContext,
+        ).viewInsets.bottom;
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SafeArea(
+            top: false,
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 22),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 42,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9DEE8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  CircleAvatar(
+                    radius: 44,
+                    backgroundColor: const Color(0xFFE8ECFF),
+                    child: Text(
+                      _profileInitials,
+                      style: const TextStyle(
+                        color: _primaryBlue,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _displayName,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _textPrimary,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _email.isEmpty
+                        ? 'Email will appear after your next login'
+                        : _email,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: _textSecondary, fontSize: 13),
+                  ),
+                  const SizedBox(height: 22),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F9FC),
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(color: const Color(0xFFE5E9F0)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.school_outlined,
+                          color: _primaryBlue,
+                          size: 21,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Learner account',
+                            style: TextStyle(
+                              color: _textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final bool confirmed =
+                            await showLogoutConfirmationDialog(sheetContext);
+                        if (confirmed && sheetContext.mounted) {
+                          Navigator.of(sheetContext).pop(true);
+                        }
+                      },
+                      icon: const Icon(Icons.logout_rounded),
+                      label: const Text('Log out'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFD32F2F),
+                        side: const BorderSide(color: Color(0xFFFFCDD2)),
+                        backgroundColor: const Color(0xFFFFF7F7),
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (shouldLogOut != true) {
+      return;
+    }
+
+    try {
+      await AppSession.logOut();
+    } catch (_) {}
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/login',
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -230,8 +366,10 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
         leadingWidth: 62,
         leading: Padding(
           padding: const EdgeInsets.only(left: 14),
-          child: Center(
-            child: CircleAvatar(
+          child: IconButton(
+            tooltip: 'Learner profile',
+            onPressed: _openLearnerProfile,
+            icon: CircleAvatar(
               radius: 18,
               backgroundColor: const Color(0xFFE8ECFF),
               child: Text(
@@ -515,40 +653,6 @@ class _BrowseProgramsScreenState extends State<BrowseProgramsScreen> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectNavigationItem,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _primaryBlue,
-        unselectedItemColor: const Color(0xFF8993A2),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Browse',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
   }
 }
@@ -626,22 +730,30 @@ class _ProgramListCard extends StatelessWidget {
               Container(
                 height: 135,
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
                     colors: [Color(0xFFE6EBFF), Color(0xFFF4F6FC)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
+                  image: program.imageUrl != null && program.imageUrl!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(program.imageUrl!),
+                          fit: BoxFit.cover,
+                          onError: (exception, stackTrace) {},
+                        )
+                      : null,
                 ),
                 child: Stack(
                   children: [
-                    Center(
-                      child: Icon(
-                        isProgram ? Icons.school : Icons.cloud_outlined,
-                        size: 54,
-                        color: _primaryBlue,
+                    if (program.imageUrl == null || program.imageUrl!.isEmpty)
+                      Center(
+                        child: Icon(
+                          isProgram ? Icons.school : Icons.cloud_outlined,
+                          size: 54,
+                          color: _primaryBlue,
+                        ),
                       ),
-                    ),
                     Positioned(
                       right: 12,
                       top: 12,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/logout_confirmation_dialog.dart';
 import 'app_session.dart';
 import 'profile/edit_profile_screen.dart';
 import 'profile/notification_settings_screen.dart';
@@ -21,7 +22,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final int _selectedIndex = 3; // Profile tab index
 
   String _displayName = 'Alex';
   String _email = 'alex@example.com';
@@ -56,16 +56,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return '${words.first.substring(0, 1)}${words.last.substring(0, 1)}'.toUpperCase();
   }
 
-  void _selectNavigationItem(int index) {
-    if (index == _selectedIndex) return;
+  Future<void> _logout() async {
+    final bool confirmed = await showLogoutConfirmationDialog(context);
+    if (!confirmed) return;
 
-    if (index == 0) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if (index == 1) {
-      Navigator.of(context).pushReplacementNamed('/browse');
-    } else if (index == 2) {
-      Navigator.of(context).pushReplacementNamed('/tasks');
-    }
+    try {
+      await AppSession.logOut();
+    } catch (_) {}
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
   }
 
   @override
@@ -192,43 +191,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Log out'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFD32F2F),
+                    side: const BorderSide(color: Color(0xFFFFCDD2)),
+                    backgroundColor: const Color(0xFFFFF7F7),
+                    minimumSize: const Size.fromHeight(50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectNavigationItem,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _primaryBlue,
-        unselectedItemColor: const Color(0xFF8993A2),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Browse',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'program_learning_screen.dart';
 import '../models/program.dart';
 import '../services/program_store.dart';
 import '../widgets/notification_badge.dart';
+import '../widgets/logout_confirmation_dialog.dart';
 import '../services/announcement_service.dart';
 
 const Color _primaryBlue = Color(0xFF3F5BF6);
@@ -14,22 +15,15 @@ const Color _textPrimary = Color(0xFF202533);
 const Color _textSecondary = Color(0xFF7C8798);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onBrowseTap});
+
+  final VoidCallback? onBrowseTap;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const List<String> _programListingRoutes = <String>[
-    '/program-listing',
-    '/programs',
-    '/browse',
-    '/programListing',
-    '/program-listing-screen',
-  ];
-
-  final int _selectedIndex = 0;
 
   String _displayName = 'Alex';
   String _email = '';
@@ -108,68 +102,13 @@ class _HomeScreenState extends State<HomeScreen> {
         .toUpperCase();
   }
 
-  Future<bool> _pushFirstRegisteredRoute(
-    List<String> routeNames, {
-    required String screenLabel,
-  }) async {
-    for (final String routeName in routeNames) {
-      try {
-        final Future<dynamic> navigation = Navigator.of(
-          context,
-        ).pushNamed(routeName);
-        await navigation;
-        return true;
-      } on FlutterError {
-        // Try the next common route name.
-      }
-    }
-
-    if (!mounted) {
-      return false;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$screenLabel is available, but its route is not registered '
-          'under any supported route name.',
-        ),
-      ),
-    );
-    return false;
-  }
-
-  Future<void> _openProgramListing() async {
-    await _pushFirstRegisteredRoute(
-      _programListingRoutes,
-      screenLabel: 'Program Listing',
-    );
-  }
-
-  Future<void> _openProgramDetails(Program program) async {
-    await Navigator.of(context).push(
+  void _openProgramDetails(Program program) {
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ProgramDetailsScreen(program: program),
       ),
     );
     if (mounted) setState(() {});
-  }
-
-  Future<void> _selectNavigationItem(int index) async {
-    if (index == _selectedIndex) return;
-    switch (index) {
-      case 0:
-        return;
-      case 1:
-        Navigator.of(context).pushReplacementNamed('/browse');
-        return;
-      case 2:
-        Navigator.of(context).pushReplacementNamed('/tasks');
-        return;
-      case 3:
-        Navigator.of(context).pushReplacementNamed('/profile');
-        return;
-    }
   }
 
 
@@ -271,8 +210,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(sheetContext).pop(true);
+                      onPressed: () async {
+                        final bool confirmed =
+                            await showLogoutConfirmationDialog(sheetContext);
+                        if (confirmed && sheetContext.mounted) {
+                          Navigator.of(sheetContext).pop(true);
+                        }
                       },
                       icon: const Icon(Icons.logout_rounded),
                       label: const Text('Log out'),
@@ -336,9 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope<void>(
-      canPop: false,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: _background,
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -527,10 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    await _openProgramListing();
-                    if (mounted) setState(() {});
-                  },
+                  onPressed: () => widget.onBrowseTap?.call(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
@@ -624,41 +562,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _selectNavigationItem,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: _primaryBlue,
-          unselectedItemColor: const Color(0xFF8993A2),
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 11,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search_rounded),
-              label: 'Browse',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_outlined),
-              activeIcon: Icon(Icons.assignment_rounded),
-              label: 'Tasks',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

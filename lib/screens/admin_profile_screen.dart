@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/logout_confirmation_dialog.dart';
+
 import 'app_session.dart';
 import '../widgets/notification_badge.dart';
 import 'admin_profile/admin_edit_profile_screen.dart';
@@ -67,6 +69,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
+    final bool confirmed = await showLogoutConfirmationDialog(context);
+    if (!confirmed) return;
+
     await AppSession.logOut();
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);

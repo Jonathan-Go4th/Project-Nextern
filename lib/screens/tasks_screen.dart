@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/notification_badge.dart';
+import '../widgets/logout_confirmation_dialog.dart';
+import '../models/certificate.dart';
+import '../services/certificate_store.dart';
+import '../widgets/certificate_viewer_dialog.dart';
 import 'app_session.dart';
 import 'program_learning_screen.dart';
 
@@ -16,9 +20,8 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  final int _selectedIndex = 2;
-
   String _displayName = 'Alex';
+  String _email = '';
   int _selectedTab = 0; // 0 for Active, 1 for Completed
 
   final List<Map<String, dynamic>> _activePrograms = [
@@ -55,6 +58,7 @@ class _TasksScreenState extends State<TasksScreen> {
       if (mounted && profile != null) {
         setState(() {
           _displayName = profile.displayName;
+          _email = profile.email;
         });
       }
     } catch (_) {}
@@ -70,18 +74,6 @@ class _TasksScreenState extends State<TasksScreen> {
     if (words.isEmpty) return 'U';
     if (words.length == 1) return words.first.substring(0, 1).toUpperCase();
     return '${words.first.substring(0, 1)}${words.last.substring(0, 1)}'.toUpperCase();
-  }
-
-  void _selectNavigationItem(int index) {
-    if (index == _selectedIndex) return;
-
-    if (index == 0) {
-      Navigator.of(context).popUntil((route) => route.settings.name == '/home');
-    } else if (index == 1) {
-      Navigator.of(context).pushReplacementNamed('/browse');
-    } else if (index == 3) {
-      Navigator.of(context).pushReplacementNamed('/profile');
-    }
   }
 
   Future<void> _loadMore() async {
@@ -100,6 +92,150 @@ class _TasksScreenState extends State<TasksScreen> {
     });
   }
 
+  Future<void> _openLearnerProfile() async {
+    final bool? shouldLogOut = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        final double bottomInset = MediaQuery.of(
+          sheetContext,
+        ).viewInsets.bottom;
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SafeArea(
+            top: false,
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 22),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 42,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9DEE8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  CircleAvatar(
+                    radius: 44,
+                    backgroundColor: const Color(0xFFE8ECFF),
+                    child: Text(
+                      _profileInitials,
+                      style: const TextStyle(
+                        color: _primaryBlue,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _displayName,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _textPrimary,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _email.isEmpty
+                        ? 'Email will appear after your next login'
+                        : _email,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: _textSecondary, fontSize: 13),
+                  ),
+                  const SizedBox(height: 22),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F9FC),
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(color: const Color(0xFFE5E9F0)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.school_outlined,
+                          color: _primaryBlue,
+                          size: 21,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Learner account',
+                            style: TextStyle(
+                              color: _textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final bool confirmed =
+                            await showLogoutConfirmationDialog(sheetContext);
+                        if (confirmed && sheetContext.mounted) {
+                          Navigator.of(sheetContext).pop(true);
+                        }
+                      },
+                      icon: const Icon(Icons.logout_rounded),
+                      label: const Text('Log out'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFD32F2F),
+                        side: const BorderSide(color: Color(0xFFFFCDD2)),
+                        backgroundColor: const Color(0xFFFFF7F7),
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (shouldLogOut != true) {
+      return;
+    }
+
+    try {
+      await AppSession.logOut();
+    } catch (_) {}
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/login',
+      (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,8 +247,10 @@ class _TasksScreenState extends State<TasksScreen> {
         leadingWidth: 62,
         leading: Padding(
           padding: const EdgeInsets.only(left: 14),
-          child: Center(
-            child: CircleAvatar(
+          child: IconButton(
+            tooltip: 'Learner profile',
+            onPressed: _openLearnerProfile,
+            icon: CircleAvatar(
               radius: 18,
               backgroundColor: const Color(0xFFE8ECFF),
               child: Text(
@@ -175,40 +313,6 @@ class _TasksScreenState extends State<TasksScreen> {
           const SizedBox(height: 16),
           Expanded(
             child: _selectedTab == 0 ? _buildActiveList() : _buildCompletedList(),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _selectNavigationItem,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _primaryBlue,
-        unselectedItemColor: const Color(0xFF8993A2),
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'Browse',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
           ),
         ],
       ),
@@ -326,22 +430,40 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Widget _buildCompletedList() {
-    final count = _visibleCompletedCount;
-    final total = _completedPrograms.length;
-    final hasMore = count < total;
+    return ListenableBuilder(
+      listenable: CertificateStore.instance,
+      builder: (context, _) {
+        final certs = CertificateStore.instance.certificates;
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: count + (hasMore ? 1 : 0),
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        if (index == count) {
-          return _buildLoadMoreButton();
+        if (certs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                'No completed courses or certificates yet.\nComplete all program tasks to earn your certificates!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: _textSecondary, height: 1.5),
+              ),
+            ),
+          );
         }
-        final item = _completedPrograms[index];
-        return _CompletedCourseCard(
-          title: item['title'],
-          date: item['date'],
+
+        final count = _visibleCompletedCount < certs.length ? _visibleCompletedCount : certs.length;
+        final hasMore = count < certs.length;
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(20),
+          itemCount: count + (hasMore ? 1 : 0),
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            if (index == count) {
+              return _buildLoadMoreButton();
+            }
+            final cert = certs[index];
+            return _CompletedCourseCard(
+              certificate: cert,
+            );
+          },
         );
       },
     );
@@ -477,13 +599,16 @@ class _ActiveCourseCard extends StatelessWidget {
 }
 
 class _CompletedCourseCard extends StatelessWidget {
-  final String title;
-  final String date;
+  final Certificate certificate;
 
   const _CompletedCourseCard({
-    required this.title,
-    required this.date,
+    required this.certificate,
   });
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -518,7 +643,7 @@ class _CompletedCourseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      certificate.programTitle,
                       style: const TextStyle(
                         color: _textPrimary,
                         fontSize: 16,
@@ -527,10 +652,10 @@ class _CompletedCourseCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      date,
+                      'Completed on ${_formatDate(certificate.issueDate)} • ${certificate.recipientName}',
                       style: const TextStyle(
                         color: _textSecondary,
-                        fontSize: 13,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -538,27 +663,63 @@ class _CompletedCourseCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Downloading Certificate...')),
-                );
-              },
-              icon: const Icon(Icons.download_rounded, size: 20),
-              label: const Text('Download Certificate'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryBlue,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => CertificateViewerDialog(certificate: certificate),
+                    );
+                  },
+                  icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                  label: const Text('View Cert'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _primaryBlue,
+                    side: const BorderSide(color: _primaryBlue),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text('Downloaded "${certificate.programTitle}" Certificate (ID: ${certificate.verificationCode})'),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFF43A047),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.download_rounded, size: 18),
+                  label: const Text('Download'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

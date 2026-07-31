@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/submission_store.dart';
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _background = Color(0xFFF8FAFD);
@@ -7,19 +8,25 @@ const Color _textSecondary = Color(0xFF788394);
 const Color _border = Color(0xFFE2E7EF);
 
 class AdminReviewAssignmentScreen extends StatefulWidget {
+  final String? programTitle;
   final String studentName;
   final String moduleName;
   final String assignmentPrompt;
   final String submissionText;
   final bool isGraded;
+  final int? currentScore;
+  final String? currentFeedback;
 
   const AdminReviewAssignmentScreen({
     super.key,
+    this.programTitle,
     required this.studentName,
     required this.moduleName,
     required this.assignmentPrompt,
     required this.submissionText,
     required this.isGraded,
+    this.currentScore,
+    this.currentFeedback,
   });
 
   @override
@@ -33,8 +40,14 @@ class _AdminReviewAssignmentScreenState extends State<AdminReviewAssignmentScree
   @override
   void initState() {
     super.initState();
-    _feedbackController = TextEditingController(text: widget.isGraded ? 'Great job analyzing the concepts.' : '');
-    _scoreController = TextEditingController(text: widget.isGraded ? '95' : '');
+    _feedbackController = TextEditingController(
+      text: widget.currentFeedback ?? (widget.isGraded ? 'Great job analyzing the concepts.' : ''),
+    );
+    _scoreController = TextEditingController(
+      text: widget.currentScore != null && widget.currentScore! > 0
+          ? widget.currentScore.toString()
+          : (widget.isGraded ? '95' : ''),
+    );
   }
 
   @override
@@ -49,7 +62,19 @@ class _AdminReviewAssignmentScreenState extends State<AdminReviewAssignmentScree
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a score.')));
       return;
     }
-    // Return true to indicate grading was successful
+    final int score = int.tryParse(_scoreController.text.trim()) ?? 0;
+    final String feedback = _feedbackController.text.trim();
+
+    if (widget.programTitle != null) {
+      SubmissionStore.instance.updateSubmissionGrade(
+        programTitle: widget.programTitle!,
+        studentName: widget.studentName,
+        week: widget.moduleName,
+        score: score,
+        feedback: feedback,
+      );
+    }
+
     Navigator.of(context).pop(true);
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/program.dart';
+import 'notification_service.dart';
 import 'program_service.dart';
 import 'saved_program_service.dart';
 
@@ -80,6 +81,38 @@ class ProgramStore extends ChangeNotifier {
     await _savedService.saveProgramIds(_savedProgramIds);
   }
 
+  /// Adds a new program to the store, notifies listeners, and sends student notification.
+  Future<void> addProgram(Program program) async {
+    _programs.insert(0, program);
+    notifyListeners();
+    NotificationService.instance.addLearnerNotification(
+      title: 'New Program: ${program.title}',
+      content: 'A new program "${program.title}" by ${program.company} is now available on Nextern. Explore now to get started!',
+    );
+  }
+
+  /// Updates an existing program in the store and notifies listeners.
+  Future<void> updateProgram(Program program) async {
+    final index = _programs.indexWhere((p) => p.id == program.id);
+    if (index != -1) {
+      _programs[index] = program;
+    } else {
+      _programs.insert(0, program);
+      NotificationService.instance.addLearnerNotification(
+        title: 'New Program: ${program.title}',
+        content: 'A new program "${program.title}" by ${program.company} is now available on Nextern. Explore now to get started!',
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Deletes a program by ID from the store and notifies listeners.
+  Future<void> deleteProgram(String programId) async {
+    _programs.removeWhere((p) => p.id == programId);
+    _savedProgramIds.remove(programId);
+    notifyListeners();
+  }
+
   /// Returns the [Program] with the given [id], or null if not found.
   Program? findById(String id) {
     try {
@@ -89,3 +122,4 @@ class ProgramStore extends ChangeNotifier {
     }
   }
 }
+

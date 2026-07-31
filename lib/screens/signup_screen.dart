@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'app_session.dart';
 
 
+
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _background = Color(0xFFF8FAFD);
 const Color _fieldBackground = Color(0xFFF5F7FB);
 const Color _textPrimary = Color(0xFF202532);
 const Color _textSecondary = Color(0xFF788394);
+
+// A stricter email pattern: requires at least one character after the
+// final dot (blocks things like "kamis@gmail." while still allowing
+// "kamis@gmail.com").
+final RegExp _emailRegex = RegExp(r'^[\w.\-]+@([\w\-]+\.)+[\w\-]{2,}$');
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -245,7 +251,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           return 'Enter your email address';
                         }
 
-                        if (!email.contains('@') || !email.contains('.')) {
+                        if (!_emailRegex.hasMatch(email)) {
                           return 'Enter a valid email address';
                         }
 

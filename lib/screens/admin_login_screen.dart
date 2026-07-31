@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
-import 'admin_home_screen.dart';
 import 'app_session.dart';
-import 'home_screen.dart';
 
 const Color _primaryBlue = Color(0xFF3157F6);
 const Color _background = Color(0xFFF8FAFD);
 const Color _fieldBackground = Color(0xFFF5F7FB);
 const Color _textPrimary = Color(0xFF202532);
 const Color _textSecondary = Color(0xFF788394);
+
+// A stricter email pattern: requires at least one character after the
+// final dot (blocks things like "admin@org." while still allowing
+// "admin@organization.edu").
+final RegExp _emailRegex = RegExp(r'^[\w.\-]+@([\w\-]+\.)+[\w\-]{2,}$');
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -24,49 +27,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _hidePassword = true;
-  bool _checkingSession = true;
   bool _isLoggingIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _restoreSession();
-    });
-  }
-
-  Future<void> _restoreSession() async {
-    try {
-      final SessionRole? role = await AppSession.getRole();
-
-      if (!mounted) {
-        return;
-      }
-
-      if (role != null) {
-        final Widget destination = role == SessionRole.admin
-            ? const AdminHomeScreen()
-            : const HomeScreen();
-
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => destination,
-          ),
-          (Route<dynamic> route) => false,
-        );
-        return;
-      }
-    } catch (_) {
-      // Continue to the login form if local storage is unavailable.
-    }
-
-    if (mounted) {
-      setState(() {
-        _checkingSession = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -169,15 +130,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_checkingSession) {
-      return const Scaffold(
-        backgroundColor: _background,
-        body: Center(
-          child: CircularProgressIndicator(color: _primaryBlue),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
@@ -275,7 +227,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           return 'Enter your work email';
                         }
 
-                        if (!email.contains('@') || !email.contains('.')) {
+                        if (!_emailRegex.hasMatch(email)) {
                           return 'Enter a valid email address';
                         }
 
@@ -308,11 +260,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if ((value ?? '').isEmpty) {
+                        final password = value ?? '';
+
+                        if (password.trim().isEmpty) {
                           return 'Enter your password';
                         }
 
-                        if ((value ?? '').length < 6) {
+                        if (password.trim().length < 6) {
                           return 'Use at least 6 characters';
                         }
 

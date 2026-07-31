@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/notification_badge.dart';
+import '../widgets/logout_confirmation_dialog.dart';
+import '../models/program.dart';
+import '../services/program_store.dart';
 import 'app_session.dart';
 import 'admin_program_maker_screen.dart';
 import 'admin_program_submissions_screen.dart';
@@ -26,19 +29,13 @@ class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
 
   int _visibleCount = 3;
   
-  List<Map<String, dynamic>> _programs = [
-    {'title': 'Data Analysis Fundamentals', 'desc': 'Learn the basics of data analysis using Python.', 'learners': 120, 'dateRange': 'Oct 12 - Nov 12'},
-    {'title': 'UX Wireframing', 'desc': 'Master Figma and user experience design principles.', 'learners': 85, 'dateRange': 'Oct 15 - Nov 5'},
-    {'title': 'React Architecture', 'desc': 'Advanced component patterns for React applications.', 'learners': 42, 'dateRange': 'Nov 1 - Dec 15'},
-    {'title': 'Flutter Masterclass', 'desc': 'Build cross-platform mobile apps with Flutter.', 'learners': 215, 'dateRange': 'Nov 10 - Jan 10'},
-    {'title': 'Node.js Backend Basics', 'desc': 'Introduction to server-side JS and APIs.', 'learners': 90, 'dateRange': 'Dec 1 - Jan 5'},
-    {'title': 'Machine Learning 101', 'desc': 'Understand the core concepts of ML and AI.', 'learners': 310, 'dateRange': 'Jan 15 - Mar 25'},
-  ];
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    ProgramStore.instance.initialize();
   }
 
   Future<void> _loadProfile() async {
@@ -98,7 +95,13 @@ class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(sheetContext).pop(true),
+                    onPressed: () async {
+                      final bool confirmed =
+                          await showLogoutConfirmationDialog(sheetContext);
+                      if (confirmed && sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop(true);
+                      }
+                    },
                     icon: const Icon(Icons.logout_rounded),
                     label: const Text('Log out'),
                     style: OutlinedButton.styleFrom(
@@ -127,20 +130,22 @@ class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
     }
   }
 
-  void _deleteProgram(int index) {
+  void _deleteProgram(Program program) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Delete Program'),
-          content: Text('Are you sure you want to delete "${_programs[index]['title']}"?'),
+          content: Text('Are you sure you want to delete "${program.title}"?'),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
             TextButton(
-              onPressed: () {
-                setState(() => _programs.removeAt(index));
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Program deleted.')));
+              onPressed: () async {
+                await ProgramStore.instance.deleteProgram(program.id);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('Program deleted.')));
+                }
               },
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
@@ -193,105 +198,146 @@ class _AdminProgramManagerScreenState extends State<AdminProgramManagerScreen> {
             SizedBox(width: 7),
           ],
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(18.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search programs...',
-                  prefixIcon: const Icon(Icons.search, color: _textSecondary),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                itemCount: _visibleCount < _programs.length ? _visibleCount + 1 : _programs.length,
-                itemBuilder: (context, index) {
-                  if (index == _visibleCount && _visibleCount < _programs.length) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          setState(() {
-                            _visibleCount += 3;
-                          });
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _primaryBlue,
-                          side: const BorderSide(color: _primaryBlue),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text('Load More Programs', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    );
-                  }
+        body: ListenableBuilder(
+          listenable: ProgramStore.instance,
+          builder: (context, _) {
+            final allPrograms = ProgramStore.instance.programs;
+            final filteredPrograms = allPrograms.where((p) {
+              if (_searchQuery.isEmpty) return true;
+              final q = _searchQuery.toLowerCase();
+              return p.title.toLowerCase().contains(q) ||
+                  p.shortDescription.toLowerCase().contains(q) ||
+                  p.company.toLowerCase().contains(q);
+            }).toList();
 
-                  final program = _programs[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminProgramSubmissionsScreen(program: program)));
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _border),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(program['title'], style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                              ),
-                              PopupMenuButton<String>(
-                                onSelected: (value) async {
-                                  if (value == 'edit') {
-                                    await Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminProgramMakerScreen(initialProgram: program)));
-                                  } else if (value == 'delete') {
-                                    _deleteProgram(index);
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) => [
-                                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                  const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(program['desc'], style: const TextStyle(color: _textSecondary, fontSize: 13)),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              const Icon(Icons.people, size: 16, color: _primaryBlue),
-                              const SizedBox(width: 4),
-                              Text('${program['learners']} Learners', style: const TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
-                              const SizedBox(width: 16),
-                              const Icon(Icons.calendar_today, size: 16, color: _primaryBlue),
-                              const SizedBox(width: 4),
-                              Text(program['dateRange'] ?? program['duration'] ?? '', style: const TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ],
-                      ),
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(18.0),
+                  child: TextField(
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Search programs...',
+                      prefixIcon: const Icon(Icons.search, color: _textSecondary),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+                Expanded(
+                  child: filteredPrograms.isEmpty
+                      ? const Center(child: Text('No programs found.', style: TextStyle(color: _textSecondary)))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          itemCount: _visibleCount < filteredPrograms.length ? _visibleCount + 1 : filteredPrograms.length,
+                          itemBuilder: (context, index) {
+                            if (index == _visibleCount && _visibleCount < filteredPrograms.length) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _visibleCount += 3;
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: _primaryBlue,
+                                    side: const BorderSide(color: _primaryBlue),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                  child: const Text('Load More Programs', style: TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                              );
+                            }
+
+                            final program = filteredPrograms[index];
+                            final Map<String, dynamic> programMap = {
+                              'id': program.id,
+                              'title': program.title,
+                              'desc': program.shortDescription,
+                              'company': program.company,
+                              'category': program.category,
+                              'imageUrl': program.imageUrl,
+                              'learners': 120,
+                              'dateRange': program.duration ?? '8 Weeks',
+                            };
+
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminProgramSubmissionsScreen(program: programMap)));
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _border),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (program.imageUrl != null && program.imageUrl!.isNotEmpty) ...[
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          program.imageUrl!,
+                                          height: 120,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                    ],
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(program.title, style: const TextStyle(color: _textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                                        ),
+                                        PopupMenuButton<String>(
+                                          onSelected: (value) async {
+                                            if (value == 'edit') {
+                                              await Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminProgramMakerScreen(initialProgram: programMap)));
+                                            } else if (value == 'delete') {
+                                              _deleteProgram(program);
+                                            }
+                                          },
+                                          itemBuilder: (BuildContext context) => [
+                                            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                            const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(program.shortDescription, style: const TextStyle(color: _textSecondary, fontSize: 13)),
+                                    const SizedBox(height: 14),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.people, size: 16, color: _primaryBlue),
+                                        const SizedBox(width: 4),
+                                        const Text('120 Learners', style: TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                        const SizedBox(width: 16),
+                                        const Icon(Icons.calendar_today, size: 16, color: _primaryBlue),
+                                        const SizedBox(width: 4),
+                                        Text(program.duration ?? '8 Weeks', style: const TextStyle(color: _textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {

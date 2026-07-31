@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/notification_badge.dart';
+import '../widgets/logout_confirmation_dialog.dart';
 import '../services/announcement_service.dart';
 import 'admin_review_assignment_screen.dart';
 import 'admin_user_management_screen.dart';
@@ -189,8 +190,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(sheetContext).pop(true);
+                    onPressed: () async {
+                      final bool confirmed =
+                          await showLogoutConfirmationDialog(sheetContext);
+                      if (confirmed && sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop(true);
+                      }
                     },
                     icon: const Icon(Icons.logout_rounded),
                     label: const Text('Log out'),
