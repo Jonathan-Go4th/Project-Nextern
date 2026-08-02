@@ -85,12 +85,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 
-  void _showAction(String action) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$action selected')));
-  }
-
   Future<void> _openAdminProfile() async {
     final bool? shouldLogOut = await showModalBottomSheet<bool>(
       context: context,
@@ -463,14 +457,12 @@ class _MetricCard extends StatelessWidget {
     required this.value,
     required this.label,
     required this.change,
-    this.showProgress = false,
   });
 
   final IconData icon;
   final String value;
   final String label;
   final String change;
-  final bool showProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -519,44 +511,7 @@ class _MetricCard extends StatelessWidget {
             label,
             style: const TextStyle(color: _textSecondary, fontSize: 11),
           ),
-          if (showProgress) ...[
-            const SizedBox(height: 12),
-            const LinearProgressIndicator(
-              value: 0.84,
-              minHeight: 4,
-              color: _primaryBlue,
-              backgroundColor: Color(0xFFE8ECF5),
-              borderRadius: BorderRadius.all(Radius.circular(4)),
-            ),
-          ],
         ],
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF343B48),
-        minimumSize: const Size.fromHeight(45),
-        side: const BorderSide(color: _border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }
