@@ -1,222 +1,249 @@
+<div align="center">
+
 # Nextern
 
-## Project Vision
+### Learning programs, applications, progress, and administration in one Flutter app
 
-Nextern is a mobile application designed to provide learners with easy access to learning programs and internships while giving administrators tools to manage programs, monitor learner progress, review assignments and enrolment requests, publish announcements, and respond to feedback through a simple and user-friendly interface.
+[![Flutter CI](https://github.com/Jonathan-Go4th/Project-Nextern/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/Jonathan-Go4th/Project-Nextern/actions/workflows/flutter-ci.yml)
+[![Release](https://img.shields.io/github/v/release/Jonathan-Go4th/Project-Nextern)](https://github.com/Jonathan-Go4th/Project-Nextern/releases)
+[![Tests](https://img.shields.io/badge/tests-24%20passing-brightgreen)](test)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-📄 For week 3 deliverables, see our [Nextern_Week_3_Development_Documentation.pdf](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern_Week_3_Development_Documentation.pdf)
+[Download Android APK](https://github.com/Jonathan-Go4th/Project-Nextern/releases/download/v1.0.0/Nextern-v1.0.0-android-universal.apk)
+·
+[Watch Demo](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
+·
+[View Figma Design](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
 
-🎥 Watch the [Demo Video](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
+</div>
 
-🎨 For full project details, View our Updated [Figma Wireframe](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
+---
 
-🗃️ See our project archive [App Proposal Document](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20App%20Proposal.pdf);  [Week 2 Deliverables](https://github.com/Jonathan-Go4th/Project-Nextern/blob/main/Nextern%20-%20Deliverables%20Week%202.pdf);  [App Demo Video](https://drive.google.com/file/d/1D80R41BOParI8f31nbzXNWi7wXw-dVWa/view);  [Figma Wireframe (Old)](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=0-1&p=f&t=6eFbiWd7greXp48c-0).
+## Overview
 
-## Objectives
+Nextern is a Flutter application that connects learners with structured learning programs and internships while providing administrators with tools to manage programs, learners, applications, assignments, announcements, and progress.
 
-- Provide learners with access to available learning programs and internships.
-- Enable learners to monitor their learning progress and resume active programs.
-- Allow learners to submit assignments and access certificates.
-- Support program applications with validation and visible enrolment states.
-- Allow learners to save programs and retain those choices between sessions.
-- Help administrators create and manage programs, learners, submissions, announcements, and enrolment requests.
-- Create a consistent mobile experience for learner and administrator roles.
-- Maintain a reusable Flutter structure that can later connect to a live backend API.
+The application includes separate learner and administrator experiences with shared program data, persistent local state, validated application workflows, and consistent navigation across the main screens.
 
-## Week 3 Update
+Version `1.0.0+4` is the first complete open-source release.
 
-Week 3 moved Nextern beyond a mainly visual prototype by introducing structured local data, shared state management, persistent saved programs, validated enrolment forms, application-status tracking, expanded learning tools, and more complete administrator workflows.
+<img src="docs/images/week3-functional-workflows.png" alt="Nextern learner dashboard, learning workflow, and administrator enrolment review" width="100%" />
 
-### Main Improvements
+## Highlights
 
-- Replaced hard-coded program listings with a local JSON file that acts as a mock API.
-- Added a reusable `Program` model with validation for required fields and safe fallback values for optional data.
-- Added shared program state using a singleton `ProgramStore` built with `ChangeNotifier`.
-- Added saved-program persistence using `SharedPreferences`.
-- Connected Browse, Home, and Program Details to the same program and bookmark state.
-- Added loading, empty, error, and retry states to the program-discovery flow.
-- Added a reusable `ProgramApplicationForm` with field validation and submission states.
-- Connected applications to `EnrollmentService` and visible statuses such as **Under Review**, **Accepted**, and **Rejected**.
-- Expanded the learner Home screen, Learning Hub, assignment submission flow, profiles, notifications, and certificates.
-- Expanded the administrator dashboard, Program Manager, enrolment review, user management, announcements, and security settings.
-- Created a Figma application-flow diagram covering learner and administrator navigation.
+### Learner experience
 
-<img src="docs/images/week3-functional-workflows.png" alt="Nextern learner dashboard, Learning Hub, and administrator enrolment review screens" width="100%" />
+- Create an account, sign in, recover a password, or enter through the administrator login route.
+- Browse learning programs and internships using search, categories, filters, and pagination.
+- View complete program information, learning outcomes, schedules, instructors, and requirements.
+- Save programs and retain saved choices between app sessions.
+- Submit validated program applications and monitor enrolment status.
+- Resume active programs and track progress through weekly learning content.
+- View tasks, submit assignments, monitor submission status, and access certificates.
+- Manage profile information, notifications, security settings, feedback, and support.
 
-The image above highlights the connected Week 3 workflows: learner progress and resume actions, weekly learning content and assignment submission, and administrator review of enrolment requests.
+### Administrator experience
 
-## Navigation Flow
+- View learner totals, program activity, submissions, announcements, and recent events.
+- Create, edit, search, and manage programs and learning modules.
+- Review learner applications and accept or decline enrolment requests.
+- Review submissions, attachments, results, and assignment status.
+- Search and manage learner accounts, profiles, enrolments, and risk indicators.
+- Publish announcements that appear within the learner experience.
+- Manage administrator profile, preferences, security, and two-factor settings.
 
-### Learner Flow
+## Screenshots
 
-1. **Login / Sign Up** → Log in or create a learner account.
-2. **Dashboard (Home)** → View active-program progress, announcements, pending assignments, notifications, and saved programs.
-3. **Browse** → Explore programs and internships using live search, quick filters, a bottom-sheet filter, and Load More pagination.
-4. **Program Details** → Review information loaded from the shared program data source, save the program, or begin an application.
-5. **Application Form** → Submit experience level, reason for joining, an optional portfolio URL, and confirmation.
-6. **Application Status** → Track the application as Under Review, Accepted, or Rejected.
-7. **Learning Hub** → Access accepted programs, weekly modules, learning resources, progress tracking, and assignment dropboxes.
-8. **Tasks** → View active assignments, submit work, monitor submission status, and access certificates.
-9. **Profile** → Edit profile information, manage notifications and security, send feedback, access Help Centre support, and log out.
+### Learner interface
 
-The learner bottom navigation bar—Home, Browse, Tasks, and Profile—allows users to move between the main areas of the application. Resume Learning actions connect the Home screen directly to active learning content.
+<img src="https://github.com/user-attachments/assets/94109610-81a2-4513-addb-2b4e9d57a8ed" alt="Nextern learner application screens" width="100%" />
 
-### Administrator Flow
+### Program data and saved programs
 
-1. **Admin Login** → Access the administrator interface using the **Login as Admin** option.
-2. **Admin Dashboard** → View learner totals, active-program counts, recent activity, quick actions, submissions, and announcements.
-3. **Programs** → Search programs, create new programs, edit or delete existing programs, build modules, set schedules, and enforce submission deadlines.
-4. **Program Management** → Review submissions, open attached files, filter by module or status, assign grades, and process enrolment requests.
-5. **Users** → Search and filter learners by status, risk, or enrolment; view profiles; reset passwords; or suspend accounts.
-6. **Admin Profile** → Edit account information, manage administrator preferences, configure security and two-factor authentication, and log out.
+<img src="docs/images/week3-dynamic-program-data.png" alt="Program JSON data, program details, and saved-program synchronization" width="100%" />
 
-The administrator bottom navigation bar—Dashboard, Programs, Users, and Profile—provides access to the main management areas.
+### Application workflow
 
-## Student Features
+<img src="docs/images/week3-application-form.png" alt="Nextern program application form and successful submission" width="100%" />
 
-- **Login** – Account creation using name, email, password, and acceptance of the terms and conditions; email-password login; password recovery; Google sign-in; and a separate Admin Login entry point.
-- **Home** – Active-program carousel, course-completion progress, current module, Resume Learning action, announcements, pending assignments, saved programs, and interactive notifications.
-- **Browse** – Live program search, category and tag filters, bottom-sheet filtering, Load More pagination, bookmarking, and access to Program Details.
-- **Program Details** – Dynamic image, company, description, duration, effort, level, format, instructor information, learning outcomes, saved state, and application status.
-- **Applications** – Reusable enrolment form with validation for experience level, reason for joining, optional portfolio URL, and confirmation.
-- **Learning Hub** – Weekly collapsible modules, learning materials, progress tracking, media and document viewing, file selection, and assignment submission.
-- **Tasks** – Separate active-course and certificate views, due dates, submission statuses, and downloadable certificates.
-- **Profile** – Edit Profile, Notification Settings, Security, Feedback, Help Centre, and logout.
+### Administrator interface
 
-<img src="https://github.com/user-attachments/assets/94109610-81a2-4513-addb-2b4e9d57a8ed" alt="Nextern student interface screens" width="100%" />
+<img src="https://github.com/user-attachments/assets/b0c78a86-cbee-428e-acf3-cb49bf5622d5" alt="Nextern administrator application screens" width="100%" />
 
-> **Note:** The image above highlights the original learner interface screens and does not represent the complete Week 3 flow. Refer to the [Demo Video](https://drive.google.com/file/d/1D80R41BOParI8f31nbzXNWi7wXw-dVWa/view) for account creation, navigation, program discovery, application, learning, assignment, certificate, and logout workflows.
+## Android installation
 
-## Dynamic Program Data and Saved Programs
+The v1.0.0 release provides a universal Android APK:
 
-Program listings are stored in `assets/data/programs.json`, which acts as the current mock data source. The original five records were moved out of the UI code and registered as Flutter assets.
+**[`Nextern-v1.0.0-android-universal.apk`](https://github.com/Jonathan-Go4th/Project-Nextern/releases/download/v1.0.0/Nextern-v1.0.0-android-universal.apk)**
 
-The program-data implementation includes:
+To install it:
 
-- `Program` – Validates required fields and provides fallback values for optional data.
-- `ProgramService` – Loads and parses JSON, removes inactive records, sorts by display order, and reports malformed data.
-- `SavedProgramService` – Stores bookmarked program IDs using `SharedPreferences`.
-- `ProgramStore` – Exposes program data, loading state, error state, and saved IDs through `ChangeNotifier`.
-- `initialize()` – Loads the initial program and bookmark state.
-- `retry()` – Reattempts loading after an error.
-- `toggleSaved()` – Saves or removes a bookmarked program and updates connected screens.
+1. Download the APK from the GitHub release.
+2. Open the downloaded file on an Android device.
+3. Permit installation from the browser or file manager when Android requests it.
+4. Complete the installation and open Nextern.
 
-Browse, Home, and Program Details read from the same store. A saved program therefore appears consistently across the application and remains saved after a restart.
+Android is the primary packaged target for v1.0.0. Other Flutter platform directories are retained for continued development but are not included as release binaries.
 
-<img src="docs/images/week3-dynamic-program-data.png" alt="JSON program record, dynamic Program Details screen, and synchronized saved-program section" width="100%" />
+## Development setup
 
-The image above demonstrates the data path from the JSON record to Program Details and the learner Home screen.
+### Requirements
 
-## Program Application and Enrolment
+- Git
+- Flutter stable with Dart 3.12.2 or newer
+- Android Studio or another Flutter-compatible editor
+- Android SDK and an emulator or physical Android device
 
-A reusable `ProgramApplicationForm` was added to the Program Details flow and connected to `EnrollmentService`.
+### Clone and run
 
-The form collects:
+```bash
+git clone https://github.com/Jonathan-Go4th/Project-Nextern.git
+cd Project-Nextern
+flutter pub get
+flutter run
+```
 
-- Experience level
-- Reason for joining
-- Optional portfolio URL
-- Confirmation that the submitted information is accurate
+Check the Flutter environment when setup problems occur:
 
-Validation prevents submission until required fields are completed, validates the portfolio URL when one is entered, and requires the confirmation checkbox. The form also supports loading, success, and error states. After a successful submission, the learner sees confirmation and the application status changes to **Under Review**.
+```bash
+flutter doctor
+```
 
-<img src="docs/images/week3-application-form.png" alt="Empty enrolment form, validation feedback, and successful application submission" width="100%" />
+## Quality checks
 
-The image above shows the empty form, a validation state, and successful submission confirmation.
+Run the same analysis and tests used by GitHub Actions:
 
-## Admin Features
+```bash
+flutter analyze --no-fatal-infos
+flutter test
+```
 
-- **Dashboard** – View total learners, active-program counts, recent activity, quick actions, announcements, and recent submissions.
-- **Programs** – Search, create, edit, and delete programs; configure schedules; add modules and resources; and enforce submission deadlines.
-- **Submissions** – Filter learner work by module or status, review attached files, provide decisions or grades, and view previous results.
-- **Enrolment Requests** – Review the learner’s reason for joining and accept or decline the application through shared application state.
-- **Users** – Search and filter learners, view profiles, reset passwords, suspend accounts, and monitor enrolment or risk status.
-- **Announcements** – Create announcements with a title, description, and resource attachments, then synchronize them with learner dashboards.
-- **Profile and Settings** – Edit administrator information, manage preferences, configure security and two-factor authentication, and log out.
+The v1.0.0 release passes all 24 automated tests. Informational Flutter recommendations are reported, while analyzer warnings and errors continue to fail CI.
 
-<img src="https://github.com/user-attachments/assets/b0c78a86-cbee-428e-acf3-cb49bf5622d5" alt="Nextern administrator interface screens" width="100%" />
+## Build the Android APK
 
-> **Note:** The image above highlights selected original administrator screens. The Week 3 screenshot near the top of this README demonstrates the newer Program Manager and enrolment-review workflow.
+```bash
+flutter clean
+flutter pub get
+flutter build apk --release
+```
 
-## Loading and Error Handling
-
-The program-discovery flow includes user-facing states for:
-
-- **Loading** – Indicates that program records are being prepared.
-- **Success** – Displays active records in the Browse interface.
-- **Empty data** – Shows a message when no programs are available.
-- **Error** – Displays a descriptive message when JSON loading or parsing fails.
-- **Retry** – Allows the learner to attempt loading again.
-- **Form loading** – Prevents duplicate submissions while an application is being processed.
-- **Form success** – Confirms submission and updates enrolment status.
-- **Form error** – Explains that the application failed and allows another attempt.
-
-## Technical Structure
+The generated universal APK is written to:
 
 ```text
+build/app/outputs/flutter-apk/app-release.apk
+```
+
+For the official release, this file is distributed as:
+
+```text
+Nextern-v1.0.0-android-universal.apk
+```
+
+## Data and architecture
+
+Nextern currently uses a local-first application architecture:
+
+```text
+assets/data/programs.json
+        │
+        ▼
+  ProgramService
+        │
+        ▼
+    ProgramStore
+        │
+        ├── Browse
+        ├── Home
+        └── Program Details
+
+SharedPreferences
+        │
+        ├── Saved programs
+        └── Local session state
+```
+
+Core implementation areas include:
+
+- Models for structured application data.
+- Services for loading programs, saved items, applications, sessions, and announcements.
+- Shared state implemented with `ChangeNotifier`.
+- Local JSON assets acting as the current program-data source.
+- `SharedPreferences` for selected persistent state.
+- Reusable widgets for forms, navigation, notifications, certificates, and dialogs.
+- Separate learner and administrator screen workflows.
+
+The service and state layers are structured so that the local data source can later be replaced by a remote backend.
+
+> Nextern v1.0.0 is a demonstrable learning-platform application. Its current authentication, program data, and workflow state are primarily local and should not be treated as a production backend or production identity system.
+
+## Repository structure
+
+```text
+.github/
+├── ISSUE_TEMPLATE/
+└── workflows/
+
 assets/
 └── data/
-    └── programs.json
+
+docs/
+├── images/
+└── PROJECT_HISTORY.md
 
 lib/
 ├── models/
-│   └── program.dart
+├── screens/
 ├── services/
-│   ├── program_service.dart
-│   ├── saved_program_service.dart
-│   └── enrollment_service.dart
 ├── stores/
-│   └── program_store.dart
 ├── widgets/
-│   └── program_application_form.dart
-└── screens/
-    ├── browse/
-    ├── program_details/
-    ├── learning_hub/
-    ├── learner_profile/
-    └── admin/
+└── main.dart
+
+test/
 ```
 
-The exact folder names may differ as the project continues to be reorganized, but the implementation separates data models, services, shared state, reusable widgets, and screens.
+## Project documentation
 
-## Technologies Used
+- [Changelog](CHANGELOG.md)
+- [Development history](docs/PROJECT_HISTORY.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [MIT licence](LICENSE)
+- [Week 3 development documentation](Nextern_Week_3_Development_Documentation.pdf)
+- [App proposal](Nextern%20-%20App%20Proposal.pdf)
+- [Week 2 deliverables](Nextern%20-%20Deliverables%20Week%202.pdf)
 
-### Development
+## Contributing
 
-- Flutter
-- Dart
-- Kotlin
-- Swift
-- Gradle
+Contributions are welcome.
 
-### Data and State
+Before submitting a change:
 
-- Local JSON assets
-- `ChangeNotifier`
-- Singleton shared store
-- `SharedPreferences`
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
+2. Create a focused branch.
+3. Run Flutter analysis and tests.
+4. Open a pull request using the repository template.
 
-### Design
+Security vulnerabilities should be reported privately according to [SECURITY.md](SECURITY.md), not through a public issue.
 
-- Figma
+## Team 18
 
-### Version Control
+| Contributor | Primary contributions |
+|---|---|
+| Jonathan Goforth | Dynamic program data, saved programs, repository management, video editing, and deliverables documentation |
+| Renz Paulo Baltazar | Figma wireframes, UI/UX design, and cross-application workflow expansion |
+| Favour Chigemezu Uzochukwu | Program application form and enrolment submission workflow |
+| Sadaf | Merged-code quality assurance |
 
-- Git
-- GitHub
+## Licence
 
-### Packages and Local Storage
+Nextern is released under the [MIT Licence](LICENSE).
 
-- `cupertino_icons`
-- `shared_preferences`
+---
 
-## Current Data Approach
+<div align="center">
 
-The local JSON file currently acts as an offline mock API. This keeps the app functional without a network connection and provides a reusable data structure for Browse, Home, and Program Details. The service layer and shared store are designed so that the local source can later be replaced with a remote API or backend service.
+Built with Flutter by Team 18.
 
-## Team 18 Task split
-
-- Jonathan Goforth : Dynamic Program Data and Saved Programs, GitHub repository management, video editing and deliverables doccumentation
-- Renz Paulo Baltazar : Figma wireframe, UI/UX design, Cross-App Functional Expansion and Workflow Improvements
-- Favour Chigemezu Uzochukwu: Program Application Form and Enrolment Submission
-- Sadaf : Merged code QA
+</div>
