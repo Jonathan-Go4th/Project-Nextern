@@ -11,7 +11,7 @@
 
 [Download Android APK](https://github.com/Jonathan-Go4th/Project-Nextern/releases/download/v1.0.0/Nextern-v1.0.0-android-universal.apk)
 ·
-[Watch Demo](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
+[Watch Demo](https://drive.google.com/file/d/1cX7cx7BBhUqAp2TToiCAfmpFB16ibm8b/view)
 ·
 [View Figma Design](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
 
@@ -210,9 +210,9 @@ test/
 - [Security policy](SECURITY.md)
 - [Code of conduct](CODE_OF_CONDUCT.md)
 - [MIT licence](LICENSE)
+- [Week 1 App proposal documentation](Nextern%20-%20App%20Proposal.pdf)
+- [Week 2 development documentation](Nextern%20-%20Deliverables%20Week%202.pdf)
 - [Week 3 development documentation](Nextern_Week_3_Development_Documentation.pdf)
-- [App proposal](Nextern%20-%20App%20Proposal.pdf)
-- [Week 2 deliverables](Nextern%20-%20Deliverables%20Week%202.pdf)
 
 ## Contributing
 
