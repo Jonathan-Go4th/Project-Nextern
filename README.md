@@ -231,10 +231,10 @@ Security vulnerabilities should be reported privately according to [SECURITY.md]
 
 | Contributor | Primary contributions |
 |---|---|
-| Jonathan Goforth | Dynamic program data, saved programs, repository management, video editing, and deliverables documentation |
-| Renz Paulo Baltazar | Figma wireframes, UI/UX design, and cross-application workflow expansion |
-| Favour Chigemezu Uzochukwu | Program application form and enrolment submission workflow |
-| Sadaf | Merged-code quality assurance |
+| Jonathan Goforth | Dynamic program data, saved programs, ProgramStore/ProgramService implementation, SharedPreferences persistence, CI/CD workflow, repository management, release packaging, video editing, and deliverables documentation. |
+| Renz Paulo Baltazar | Figma wireframes, UI/UX design, native splash screen, profile screen polish, authentication form improvements, cross-app workflow expansion, and overall UI consistency fixes post-integration. |
+| Favour Chigemezu Uzochukwu | Program application form, field validation, portfolio URL validation, submission state handling, EnrollmentService integration, and enrolment status tracking |
+| Sadaf | Merged-code quality assurance, post-refactor bug fixes and admin home screen import cleanup |
 
 ## Licence
 
