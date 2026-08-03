@@ -11,7 +11,7 @@
 
 [Download Android APK](https://github.com/Jonathan-Go4th/Project-Nextern/releases/download/v1.0.0/Nextern-v1.0.0-android-universal.apk)
 ·
-[Watch Demo](https://drive.google.com/file/d/1cX7cx7BBhUqAp2TToiCAfmpFB16ibm8b/view)
+[Watch Demo](https://drive.google.com/file/d/1h6qsRaYFGqBf4dTSosTcI3IorAMZbxYi/view)
 ·
 [View Figma Design](https://www.figma.com/design/zFOUI2k38kZSWLhMXAM1sV/Nextern-App?node-id=92-55&t=Xy7SYgtqdB2bLa33-0)
 
